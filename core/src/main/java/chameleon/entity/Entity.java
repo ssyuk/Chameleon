@@ -1,0 +1,170 @@
+package chameleon.entity;
+
+import chameleon.Chameleon;
+import chameleon.entity.player.Player;
+import chameleon.entity.tile.BrokenTree;
+import chameleon.entity.tile.Bush;
+import chameleon.entity.tile.Weed;
+import chameleon.utils.Direction;
+import chameleon.utils.Location;
+import chameleon.utils.Vec2d;
+import chameleon.utils.colliding.AABB;
+import chameleon.utils.colliding.CollisionDetection;
+import chameleon.world.World;
+import org.msgpack.core.MessagePacker;
+import org.msgpack.core.MessageUnpacker;
+
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+public abstract class Entity {
+    private static final Map<String, Class<? extends Entity>> ENTITY_REGISTRY = new HashMap<>();
+
+    static {
+        ENTITY_REGISTRY.put("player", Player.class);
+        ENTITY_REGISTRY.put("bush", Bush.class);
+        ENTITY_REGISTRY.put("weed", Weed.class);
+        ENTITY_REGISTRY.put("broken_tree", BrokenTree.class);
+    }
+
+    private final UUID uuid;
+    protected Location location;
+    private Direction direction = Direction.DOWN;
+    protected boolean moving = false;
+
+    public Entity(UUID uuid, Location location) {
+        this.uuid = uuid;
+        this.location = location;
+    }
+
+    public Entity(Location location) {
+        this(UUID.randomUUID(), location);
+    }
+
+    public Location getLocation() {
+        return location;
+    }
+
+    public Direction getDirection() {
+        return direction;
+    }
+
+    public boolean isMoving() {
+        return moving;
+    }
+
+    public void setMoving(boolean moving) {
+        this.moving = moving;
+    }
+
+    public UUID uuid() {
+        return uuid;
+    }
+
+    public boolean move(Direction direction, double speedMultiplier) {
+        Location original = location;
+
+        this.direction = direction;
+        location = location.add(direction.dx() * speedMultiplier, direction.dy() * speedMultiplier);
+
+        if (detectCollision()) {
+            location = original;
+            return false;
+        }
+        return true;
+    }
+
+    public boolean move(Vec2d displacement, boolean force) {
+        Location original = location;
+        location = location.add(displacement);
+        direction = displacement.x() > 0 ? Direction.RIGHT :
+                displacement.x() < 0 ? Direction.LEFT :
+                        displacement.y() > 0 ? Direction.DOWN :
+                                displacement.y() < 0 ? Direction.UP :
+                                        this.direction;
+
+        if (detectCollision() && !force) {
+            location = original;
+            return false;
+        }
+        return true;
+    }
+
+    private boolean detectCollision() {
+        if (getCollisionOption() == CollisionOption.SOLID) {
+            World world = location.world();
+            for (Entity entity : world.getEntities()) {
+                if (this instanceof Player && entity instanceof Player) continue;
+                if (entity.uuid != this.uuid && entity.getCollisionOption().equals(CollisionOption.SOLID) && CollisionDetection.isColliding(this.getBoundingBox(), entity.getBoundingBox())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public void teleport(Location location) {
+        this.location = location;
+    }
+
+    public void setDirection(Direction direction) {
+        this.direction = direction;
+    }
+
+    public abstract String id();
+
+    public abstract void update();
+
+    public abstract AABB getBoundingBox();
+
+    public AABB getInteractiveBoundingBox() {
+        return getBoundingBox();
+    }
+
+    public abstract CollisionOption getCollisionOption();
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Entity entity && entity.uuid().equals(uuid);
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getName() + "{" +
+                "id=" + id() +
+                ", uuid=" + uuid +
+                ", location=" + location +
+                ", direction=" + direction +
+                ", moving=" + moving +
+                '}';
+    }
+
+    public void pack(MessagePacker packer) throws IOException {
+        packer.packString(id());
+        packer.packString(uuid.toString());
+        packer.packDouble(location.x());
+        packer.packDouble(location.y());
+        packer.packString(direction.name());
+    }
+
+    public int packingSize() {
+        return 5;
+    }
+
+    public static Entity unpack(MessageUnpacker unpacker) throws IOException {
+        String id = unpacker.unpackString();
+        UUID uuid = UUID.fromString(unpacker.unpackString());
+        double x = unpacker.unpackDouble();
+        double y = unpacker.unpackDouble();
+        Direction direction = Direction.valueOf(unpacker.unpackString());
+
+        try {
+            return (Entity) ENTITY_REGISTRY.get(id).getMethod("unpack", MessageUnpacker.class, UUID.class, Location.class, Direction.class).invoke(null, unpacker, uuid, new Location(Chameleon.getInstance().getWorld(), x, y), direction);
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}

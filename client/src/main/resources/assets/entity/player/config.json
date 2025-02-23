@@ -1,0 +1,23 @@
+{
+  "idle": {
+    "mode": "single_sprite",
+    "sprites": {
+      "down": "idle/down.png",
+      "up": "idle/up.png",
+      "left": "idle/left.png",
+      "right": "idle/right.png"
+    }
+  },
+  "walking": {
+    "mode": "animated",
+    "frame_count": 6,
+    "size": 32,
+    "animated_duration": 10,
+    "spritesheet": {
+      "down": "walking/down.png",
+      "up": "walking/up.png",
+      "left": "walking/left.png",
+      "right": "walking/right.png"
+    }
+  }
+}
