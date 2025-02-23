@@ -35,12 +35,12 @@ public class Player extends Entity {
 
     @Override
     public AABB getBoundingBox() {
-        return AABB.fromCenterAndSize(location, .5, .2);
+        return AABB.fromLRTB(location, .25, .25, .1, .15);
     }
 
     @Override
     public AABB getInteractiveBoundingBox() {
-        return AABB.fromLRTB(location, .25, .25, .75, .1);
+        return AABB.fromLRTB(location, .25, .25, .75, .15);
     }
 
     @Override

@@ -7,6 +7,7 @@ import chameleon.utils.TileLocation;
 import chameleon.client.window.Window;
 import chameleon.world.World;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -40,7 +41,11 @@ public class WorldRenderer {
                 int drawX = (int) ((tx - viewX + halfWindowWidthTiles) * TILE_SIZE);
                 int drawY = (int) ((ty - viewY + halfWindowHeightTiles) * TILE_SIZE);
 
-                brush.drawRect(drawX, drawY, TILE_SIZE, TILE_SIZE, world.getTileAt(new TileLocation(world, tx, ty)).getColor().getRGB());
+                Color color = world.getTileAt(new TileLocation(world, tx, ty)).getColor();
+                for (int i = 0; i < world.getHeightAt(new TileLocation(world, tx, ty)); i++) {
+                    color = color.darker();
+                }
+                brush.drawRect(drawX, drawY, TILE_SIZE, TILE_SIZE, color.getRGB());
             }
         }
     }

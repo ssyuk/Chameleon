@@ -34,4 +34,8 @@ public record Location(World world, double x, double y) {
     public TileLocation toTileLocation() {
         return new TileLocation(world, (int) x, (int) y);
     }
+
+    public Vec2d toVec2d() {
+        return new Vec2d(x, y);
+    }
 }

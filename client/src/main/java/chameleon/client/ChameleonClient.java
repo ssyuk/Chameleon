@@ -138,6 +138,7 @@ public class ChameleonClient extends Chameleon {
         assetManager.load();
 
         world.addEntity(player);
+        world.addEntity(new BrokenTree(new Location(world, 1.5, .5)));
 
         EntityRenderer.register("player", entity -> new PlayerRenderer((Player) entity));
         EntityRenderer.register("bush", entity -> new TileEntityRenderer((TileEntity) entity));

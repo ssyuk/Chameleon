@@ -7,6 +7,7 @@ import chameleon.entity.tile.Bush;
 import chameleon.entity.tile.Weed;
 import chameleon.utils.Direction;
 import chameleon.utils.Location;
+import chameleon.utils.TileLocation;
 import chameleon.utils.Vec2d;
 import chameleon.utils.colliding.AABB;
 import chameleon.utils.colliding.CollisionDetection;
@@ -16,9 +17,7 @@ import org.msgpack.core.MessageUnpacker;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public abstract class Entity {
     private static final Map<String, Class<? extends Entity>> ENTITY_REGISTRY = new HashMap<>();
@@ -70,7 +69,7 @@ public abstract class Entity {
         this.direction = direction;
         location = location.add(direction.dx() * speedMultiplier, direction.dy() * speedMultiplier);
 
-        if (detectCollision()) {
+        if (detectCollision(original)) {
             location = original;
             return false;
         }
@@ -86,16 +85,19 @@ public abstract class Entity {
                                 displacement.y() < 0 ? Direction.UP :
                                         this.direction;
 
-        if (detectCollision() && !force) {
+        if (detectCollision(original) && !force) {
             location = original;
             return false;
         }
         return true;
     }
 
-    private boolean detectCollision() {
+    private boolean detectCollision(Location original) {
         if (getCollisionOption() == CollisionOption.SOLID) {
             World world = location.world();
+
+            if (getCollidingTiles().stream().anyMatch(loc -> world.getHeightAt(loc) != world.getHeightAt(original.toTileLocation()))) return true;
+
             for (Entity entity : world.getEntities()) {
                 if (this instanceof Player && entity instanceof Player) continue;
                 if (entity.uuid != this.uuid && entity.getCollisionOption().equals(CollisionOption.SOLID) && CollisionDetection.isColliding(this.getBoundingBox(), entity.getBoundingBox())) {
@@ -166,5 +168,21 @@ public abstract class Entity {
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public Set<TileLocation> getCollidingTiles() {
+        AABB boundingBox = getBoundingBox();
+        int minX = (int) Math.floor(boundingBox.min().x());
+        int maxX = (int) Math.floor(boundingBox.max().x());
+        int minY = (int) Math.floor(boundingBox.min().y());
+        int maxY = (int) Math.floor(boundingBox.max().y());
+
+        Set<TileLocation> collidingTiles = new HashSet<>();
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                collidingTiles.add(new TileLocation(location.world(), x, y));
+            }
+        }
+        return collidingTiles;
     }
 }
