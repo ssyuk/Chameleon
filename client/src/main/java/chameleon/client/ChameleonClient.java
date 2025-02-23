@@ -22,6 +22,7 @@ import chameleon.client.window.Window;
 import chameleon.utils.TileLocation;
 import chameleon.world.World;
 import chameleon.world.tile.Tile;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -53,7 +54,7 @@ public class ChameleonClient extends Chameleon {
     private World world = new World();
     private final ClientPlayer player = new ClientPlayer("player" + (new Random().nextInt(899) + 100), new Location(world, 0.5, 0.5));
 
-    private ConnectorClient connector;
+    private @Nullable ConnectorClient connector;
 
     public static ChameleonClient getInstance() {
         return INSTANCE;
@@ -114,6 +115,10 @@ public class ChameleonClient extends Chameleon {
         return player;
     }
 
+    public boolean isOnline() {
+        return connector != null;
+    }
+
     @Override
     public ConnectorClient getConnector() {
         return connector;
@@ -123,12 +128,12 @@ public class ChameleonClient extends Chameleon {
     public void run() {
         running = true;
 
-        try {
-            connector = new ConnectorClient(InetAddress.getLocalHost(), 8793);
-            connector.start();
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            connector = new ConnectorClient(InetAddress.getLocalHost(), 8793);
+//            connector.start();
+//        } catch (UnknownHostException e) {
+//            throw new RuntimeException(e);
+//        }
 
         assetManager.load();
 
@@ -176,8 +181,8 @@ public class ChameleonClient extends Chameleon {
     }
 
     public void update() {
-        player.update();
-//        world.update();
+        if (connector == null) world.update();
+        else player.update();
     }
 
     public int currentUpdateCount() {

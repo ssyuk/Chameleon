@@ -47,11 +47,13 @@ public class ClientPlayer extends Player {
                 displacement = displacement.add(Direction.RIGHT.dx() * SPEED, Direction.RIGHT.dy() * SPEED);
         }
 
-        if (moving) {
-            client.getConnector().send(new Packet03EntityMove(uuid(), displacement, moving));
-        }
-        if (!moving && lastMoving) {
-            client.getConnector().send(new Packet03EntityMove(uuid(), new Vec2d(0, 0), false)); // stop moving
+        if (client.isOnline()) {
+            if (moving) {
+                client.getConnector().send(new Packet03EntityMove(uuid(), displacement, moving));
+            }
+            if (!moving && lastMoving) {
+                client.getConnector().send(new Packet03EntityMove(uuid(), new Vec2d(0, 0), false)); // stop moving
+            }
         }
     }
 }

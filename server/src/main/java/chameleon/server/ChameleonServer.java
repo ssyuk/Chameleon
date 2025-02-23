@@ -67,23 +67,6 @@ public class ChameleonServer extends Chameleon {
 
         connector.start();
 
-        world.setTileAt(new TileLocation(world, 1, 3), Tile.DIRT);
-        world.setTileAt(new TileLocation(world, 0, 0), Tile.DIRT);
-        for (int i = -50; i < 50; i += 2) {
-            for (int j = -50; j < 50; j += 2) {
-                if (i == 0 && j == 0) continue;
-                int type = new Random().nextInt(3);
-                final Location location = new Location(world, i + .5, j + .5);
-                TileEntity bush = switch (type) {
-                    case 0 -> new Weed(location);
-                    case 1 -> new Bush(location);
-                    case 2 -> new BrokenTree(location);
-                    default -> throw new IllegalStateException("Unexpected value: " + type);
-                };
-                world.addEntity(bush);
-            }
-        }
-
         long lastTime = System.nanoTime();
         long lastRender = System.nanoTime();
         double unprocessed = 0;
