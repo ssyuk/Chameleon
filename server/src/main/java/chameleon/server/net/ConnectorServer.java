@@ -1,7 +1,6 @@
 package chameleon.server.net;
 
 import chameleon.entity.Entity;
-import chameleon.entity.player.Player;
 import chameleon.net.Connector;
 import chameleon.net.packet.*;
 import chameleon.server.ChameleonServer;
@@ -10,9 +9,10 @@ import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessageUnpacker;
 
 import java.io.*;
-import java.net.*;
-import java.util.Arrays;
-import java.util.concurrent.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ConnectorServer extends Connector {
     private final int port;
@@ -27,6 +27,7 @@ public class ConnectorServer extends Connector {
         ServerSocket serverSocket;
         try {
             serverSocket = new ServerSocket(port);
+            System.out.println("Server started on port " + port);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -52,7 +53,6 @@ public class ConnectorServer extends Connector {
 
                 byte[] data = new byte[length];
                 dataInputStream.readFully(data);
-                System.out.println("[" + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort() + "] " + "Received data... : " + Arrays.toString(data));
                 if (parsePacket(data, clientSocket)) break;
             }
             clientSocket.close();
@@ -67,11 +67,9 @@ public class ConnectorServer extends Connector {
 
         ChameleonServer server = ChameleonServer.getInstance();
 
-        System.out.println("[" + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort() + "] " + "Received packet... : " + type);
         return switch (type) {
             case LOGIN -> {
                 Packet00Login packet = new Packet00Login(unpacker);
-                System.out.println("[" + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort() + "] " + packet.username() + " has connected...");
                 ServerPlayer player = new ServerPlayer(packet.username(), packet.uuid(), packet.location(), clientSocket);
                 server.joinPlayer(player);
 
@@ -81,7 +79,6 @@ public class ConnectorServer extends Connector {
             }
             case DISCONNECT -> {
                 Packet01Disconnect packet = new Packet01Disconnect(unpacker);
-                System.out.println("[SERVER] " + ((Player) server.getWorld().getEntityByUuid(packet.uuid())).getName() + " has left the game.");
                 server.leavePlayer(packet.uuid());
                 yield true;
             }
@@ -117,7 +114,6 @@ public class ConnectorServer extends Connector {
 
     private void send(byte[] data, DataOutputStream dataOutputStream) {
         try {
-            System.out.println("Send: " + data.length);
             dataOutputStream.writeInt(data.length);
             dataOutputStream.write(data);
             dataOutputStream.flush();

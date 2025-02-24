@@ -46,7 +46,6 @@ public class ConnectorClient extends Connector {
                 dataInputStream.readFully(data);
                 parsePacket(data);
             }
-            System.out.println("closed");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -58,7 +57,6 @@ public class ConnectorClient extends Connector {
 
         ChameleonClient client = ChameleonClient.getInstance();
 
-        System.out.println("Received data: " + data.length + " / " + type);
         switch (type) {
             case LOGIN: {
                 Packet00Login packet = new Packet00Login(unpacker);
@@ -110,7 +108,6 @@ public class ConnectorClient extends Connector {
 
     public void send(byte[] data) {
         try {
-            System.out.println("Send: " + data.length);
             dataOutputStream.writeInt(data.length);
             dataOutputStream.write(data);
             dataOutputStream.flush();

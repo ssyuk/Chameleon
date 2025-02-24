@@ -1,15 +1,23 @@
 package chameleon.server;
 
 import chameleon.Chameleon;
+import chameleon.entity.tile.BrokenTree;
+import chameleon.entity.tile.Stairs;
 import chameleon.net.packet.Packet00Login;
 import chameleon.net.packet.Packet01Disconnect;
 import chameleon.server.entity.ServerPlayer;
 import chameleon.server.net.ConnectorServer;
+import chameleon.utils.Location;
 import chameleon.world.World;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChameleonServer extends Chameleon {
     private ChameleonServer() {
@@ -60,6 +68,27 @@ public class ChameleonServer extends Chameleon {
 
         connector.start();
 
+        world.addEntity(new BrokenTree(new Location(world, 1.5, .5)));
+
+        // load height.txt
+        Path path = Paths.get("height.txt");
+        try {
+            AtomicInteger y = new AtomicInteger(-10);
+            Files.lines(path).forEach(s -> {
+                int x = -10;
+                for (char h : s.toCharArray()) {
+                    world.setHeightAt(new Location(world, x, y.get()), Integer.parseInt(h + ""));
+                    x++;
+                }
+                y.getAndIncrement();
+            });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        world.addEntity(new Stairs(new Location(world, 4, 0)));
+        world.addEntity(new Stairs(new Location(world, 1, 2)));
+
         long lastTime = System.nanoTime();
         double unprocessed = 0;
         long lastTimer1 = System.currentTimeMillis();
@@ -78,7 +107,6 @@ public class ChameleonServer extends Chameleon {
             if (System.currentTimeMillis() - lastTimer1 > 1000) {
                 lastTimer1 += 1000;
 
-                System.out.println("UPS: " + updates);
                 updates = 0;
             }
         }
@@ -92,6 +120,7 @@ public class ChameleonServer extends Chameleon {
         players.add(player);
         world.addEntity(player);
         connector.sendToAll(new Packet00Login(player));
+        System.out.println("[SERVER] " + player.getName() + " has joined the game.");
     }
 
     public void leavePlayer(UUID uuid) {
@@ -100,6 +129,7 @@ public class ChameleonServer extends Chameleon {
             players.remove(player);
             world.removeEntity(uuid);
             connector.sendToAll(new Packet01Disconnect(uuid));
+            System.out.println("[SERVER] " + player.getName() + " has left the game.");
         }
     }
 }

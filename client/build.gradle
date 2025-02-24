@@ -12,3 +12,9 @@ repositories {
 dependencies {
     implementation(project(":core"))
 }
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'chameleon.client.main.Main'
+    }
+}
