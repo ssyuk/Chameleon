@@ -2,36 +2,31 @@ package chameleon.world;
 
 import chameleon.entity.Entity;
 import chameleon.utils.Location;
-import chameleon.utils.TileLocation;
-import chameleon.utils.colliding.AABB;
 import chameleon.world.tile.Tile;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 public class World {
-    private final Map<TileLocation, Tile> tiles = new HashMap<>();
-    private final Map<TileLocation, Integer> heightMap = new HashMap<>();
+    private final Map<Location, Tile> tiles = new HashMap<>();
+    private final Map<Location, Integer> heightMap = new HashMap<>();
     private List<Entity> entities = new ArrayList<>();
 
-    public Tile getTileAt(TileLocation location) {
+    public Tile getTileAt(Location location) {
         tiles.putIfAbsent(location, Tile.GRASS);
         return tiles.get(location);
     }
 
-    public void setTileAt(TileLocation location, Tile tile) {
+    public void setTileAt(Location location, Tile tile) {
         tiles.put(location, tile);
     }
 
-    public int getHeightAt(TileLocation location) {
-        if (location.x() < 0)
-            heightMap.putIfAbsent(location,location.y() / 3);
-        else
-            heightMap.putIfAbsent(location, location.x() / 3);
+    public int getHeightAt(Location location) {
+        heightMap.putIfAbsent(location, 0);
         return heightMap.get(location);
     }
 
-    public void setHeightAt(TileLocation location, int height) {
+    public void setHeightAt(Location location, int height) {
         heightMap.put(location, height);
     }
 

@@ -8,27 +8,25 @@ import chameleon.client.net.ConnectorClient;
 import chameleon.entity.Entity;
 import chameleon.entity.player.Player;
 import chameleon.entity.tile.BrokenTree;
-import chameleon.entity.tile.Bush;
 import chameleon.entity.tile.TileEntity;
 import chameleon.client.renderer.MasterRenderer;
 import chameleon.client.renderer.entity.TileEntityRenderer;
 import chameleon.client.renderer.entity.EntityRenderer;
 import chameleon.client.renderer.entity.PlayerRenderer;
 import chameleon.client.utils.KeyHandler;
-import chameleon.entity.tile.Weed;
 import chameleon.utils.Location;
 import chameleon.client.utils.MouseHandler;
 import chameleon.client.window.Window;
-import chameleon.utils.TileLocation;
 import chameleon.world.World;
-import chameleon.world.tile.Tile;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChameleonClient extends Chameleon {
     private ChameleonClient() {
@@ -139,6 +137,22 @@ public class ChameleonClient extends Chameleon {
 
         world.addEntity(player);
         world.addEntity(new BrokenTree(new Location(world, 1.5, .5)));
+
+        // load height.txt
+        Path path = Paths.get("height.txt");
+        try {
+            AtomicInteger y = new AtomicInteger(-10);
+            Files.lines(path).forEach(s -> {
+                int x = -10;
+                for (char h : s.toCharArray()) {
+                    world.setHeightAt(new Location(world, x, y.get()), Integer.parseInt(h + ""));
+                    x++;
+                }
+                y.getAndIncrement();
+            });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         EntityRenderer.register("player", entity -> new PlayerRenderer((Player) entity));
         EntityRenderer.register("bush", entity -> new TileEntityRenderer((TileEntity) entity));

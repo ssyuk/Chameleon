@@ -7,7 +7,6 @@ import chameleon.entity.tile.Bush;
 import chameleon.entity.tile.Weed;
 import chameleon.utils.Direction;
 import chameleon.utils.Location;
-import chameleon.utils.TileLocation;
 import chameleon.utils.Vec2d;
 import chameleon.utils.colliding.AABB;
 import chameleon.utils.colliding.CollisionDetection;
@@ -96,7 +95,10 @@ public abstract class Entity {
         if (getCollisionOption() == CollisionOption.SOLID) {
             World world = location.world();
 
-            if (getCollidingTiles().stream().anyMatch(loc -> world.getHeightAt(loc) != world.getHeightAt(original.toTileLocation()))) return true;
+            Set<Location> collidingTiles = getCollidingTiles();
+            if (collidingTiles.stream().anyMatch(loc -> world.getHeightAt(loc) != world.getHeightAt(original.toTileLocation()))) {
+                return true;
+            }
 
             for (Entity entity : world.getEntities()) {
                 if (this instanceof Player && entity instanceof Player) continue;
@@ -170,17 +172,17 @@ public abstract class Entity {
         }
     }
 
-    public Set<TileLocation> getCollidingTiles() {
+    public Set<Location> getCollidingTiles() {
         AABB boundingBox = getBoundingBox();
         int minX = (int) Math.floor(boundingBox.min().x());
         int maxX = (int) Math.floor(boundingBox.max().x());
         int minY = (int) Math.floor(boundingBox.min().y());
         int maxY = (int) Math.floor(boundingBox.max().y());
 
-        Set<TileLocation> collidingTiles = new HashSet<>();
+        Set<Location> collidingTiles = new HashSet<>();
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
-                collidingTiles.add(new TileLocation(location.world(), x, y));
+                collidingTiles.add(new Location(location.world(), x, y).toTileLocation());
             }
         }
         return collidingTiles;

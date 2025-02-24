@@ -1,22 +1,13 @@
 package chameleon.server;
 
 import chameleon.Chameleon;
-import chameleon.entity.tile.BrokenTree;
-import chameleon.entity.tile.Bush;
-import chameleon.entity.tile.TileEntity;
-import chameleon.entity.tile.Weed;
 import chameleon.net.packet.Packet00Login;
 import chameleon.server.entity.ServerPlayer;
 import chameleon.server.net.ConnectorServer;
-import chameleon.utils.Location;
-import chameleon.utils.TileLocation;
 import chameleon.world.World;
-import chameleon.world.tile.Tile;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class ChameleonServer extends Chameleon {
     private ChameleonServer() {
@@ -68,7 +59,6 @@ public class ChameleonServer extends Chameleon {
         connector.start();
 
         long lastTime = System.nanoTime();
-        long lastRender = System.nanoTime();
         double unprocessed = 0;
         long lastTimer1 = System.currentTimeMillis();
 

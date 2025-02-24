@@ -5,7 +5,6 @@ import chameleon.entity.Entity;
 import chameleon.entity.player.Player;
 import chameleon.client.renderer.WorldRenderer;
 import chameleon.utils.Location;
-import chameleon.utils.TileLocation;
 import chameleon.utils.colliding.AABB;
 import chameleon.utils.colliding.CollisionDetection;
 import chameleon.client.window.Window;
@@ -52,7 +51,7 @@ public class MouseHandler extends MouseAdapter {
         return mouseY;
     }
 
-    public TileLocation getTargetTile() {
+    public Location getTargetTile() {
         ChameleonClient client = ChameleonClient.getInstance();
         Window window = client.getWindow();
         Player player = client.getClientPlayer();
@@ -65,7 +64,7 @@ public class MouseHandler extends MouseAdapter {
 
         int targetX = (int) (((double) mouseX / TILE_SIZE) + viewX - halfWindowWidthTiles);
         int targetY = (int) (((double) mouseY / TILE_SIZE) + viewY - halfWindowHeightTiles - .5);
-        return new TileLocation(client.getWorld(), targetX, targetY);
+        return new Location(client.getWorld(), targetX, targetY);
     }
 
     public @Nullable Entity getTargetEntity() {

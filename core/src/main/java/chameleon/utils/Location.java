@@ -31,8 +31,9 @@ public record Location(World world, double x, double y) {
         return Math.sqrt(Math.pow(x - other.x, 2) + Math.pow(y - other.y, 2));
     }
 
-    public TileLocation toTileLocation() {
-        return new TileLocation(world, (int) x, (int) y);
+    public Location toTileLocation() {
+        // 버림
+        return new Location(world, Math.floor(x), Math.floor(y));
     }
 
     public Vec2d toVec2d() {
