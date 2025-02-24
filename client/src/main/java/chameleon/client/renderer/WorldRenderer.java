@@ -3,9 +3,9 @@ package chameleon.client.renderer;
 import chameleon.client.ChameleonClient;
 import chameleon.client.assets.SpriteSheet;
 import chameleon.client.assets.tile.CliffSprite;
-import chameleon.entity.Entity;
 import chameleon.client.renderer.entity.EntityRenderer;
 import chameleon.client.window.Window;
+import chameleon.entity.Entity;
 import chameleon.utils.Location;
 import chameleon.world.World;
 
@@ -20,6 +20,13 @@ import static chameleon.client.ChameleonClient.TILE_SIZE;
 public class WorldRenderer {
     public List<Entity> visibleEntities = new ArrayList<>();
 
+    /**
+     * Renders the world
+     *
+     * @param brush The brush used for rendering.
+     * @param viewX The x-coordinate of the view.
+     * @param viewY The y-coordinate of the view.
+     */
     public void render(Brush brush, double viewX, double viewY) {
         ChameleonClient client = ChameleonClient.getInstance();
         World world = client.getWorld();
@@ -28,6 +35,15 @@ public class WorldRenderer {
         renderEntities(brush, world, viewX, viewY, window);
     }
 
+    /**
+     * Renders the tiles of the world.
+     *
+     * @param brush  The brush used for rendering.
+     * @param world  The world to render.
+     * @param viewX  The x-coordinate of the view.
+     * @param viewY  The y-coordinate of the view.
+     * @param window The window to render in.
+     */
     private void renderTile(Brush brush, World world, double viewX, double viewY, Window window) {
         int halfWindowWidth = window.getWidth() / 2;
         int halfWindowHeight = window.getHeight() / 2;
@@ -54,6 +70,17 @@ public class WorldRenderer {
         }
     }
 
+    /**
+     * Checks neighboring tiles and renders cliffs if necessary.
+     *
+     * @param brush         The brush used for rendering.
+     * @param world         The world to render.
+     * @param tx            The x-coordinate of the tile.
+     * @param ty            The y-coordinate of the tile.
+     * @param currentHeight The height of the current tile.
+     * @param drawX         The x-coordinate to draw the tile.
+     * @param drawY         The y-coordinate to draw the tile.
+     */
     private void checkNeighborsAndRenderCliff(Brush brush, World world, int tx, int ty, int currentHeight, int drawX, int drawY) {
         boolean[] higher = new boolean[8];
         int[][] dirs = {{0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}, {-1, -1}};
@@ -65,36 +92,43 @@ public class WorldRenderer {
             higher[i] = (neighborHeight == currentHeight + 1);
         }
 
+        // {} is higher than current tile
         boolean top = higher[0];
-        boolean topright = higher[1];
+        boolean topRight = higher[1];
         boolean right = higher[2];
-        boolean bottomright = higher[3];
+        boolean bottomRight = higher[3];
         boolean bottom = higher[4];
-        boolean bottomleft = higher[5];
+        boolean bottomLeft = higher[5];
         boolean left = higher[6];
-        boolean topleft = higher[7];
+        boolean topLeft = higher[7];
 
-        // 모서리 처리
-        if (top && right) {
-            renderCliff(brush, drawX, drawY, topright ? "inside_bottom_left" : "bottom_left");
-        }
-        if (top && left) {
-            renderCliff(brush, drawX, drawY, topleft ? "inside_bottom_right" : "bottom_right");
-        }
-        if (bottom && right) {
-            renderCliff(brush, drawX, drawY, bottomright ? "inside_top_left" : "top_left");
-        }
-        if (bottom && left) {
-            renderCliff(brush, drawX, drawY, bottomleft ? "inside_top_right" : "top_right");
-        }
-
-        // 직선 방향 처리
+        // Straight cliffs
         if (top && !right && !left) renderCliff(brush, drawX, drawY, "bottom_center");
-        if (right && !top && !bottom) renderCliff(brush, drawX, drawY, "middle_left");
-        if (bottom && !right && !left) renderCliff(brush, drawX, drawY, "top_center");
-        if (left && !top && !bottom) renderCliff(brush, drawX, drawY, "middle_right");
+        else if (right && !top && !bottom) renderCliff(brush, drawX, drawY, "middle_left");
+        else if (bottom && !right && !left) renderCliff(brush, drawX, drawY, "top_center");
+        else if (left && !top && !bottom) renderCliff(brush, drawX, drawY, "middle_right");
+
+        // L-shaped cliffs
+        else if (top && right) renderCliff(brush, drawX, drawY, "inside_bottom_left");
+        else if (top/* && left*/) renderCliff(brush, drawX, drawY, "inside_bottom_right");
+        else if (bottom && right) renderCliff(brush, drawX, drawY, "inside_top_left");
+        else if (bottom/* && left*/) renderCliff(brush, drawX, drawY, "inside_top_right");
+
+        // Corner cliffs
+        else if (topLeft) renderCliff(brush, drawX, drawY, "bottom_right");
+        else if (topRight) renderCliff(brush, drawX, drawY, "bottom_left");
+        else if (bottomLeft) renderCliff(brush, drawX, drawY, "top_right");
+        else if (bottomRight) renderCliff(brush, drawX, drawY, "top_left");
     }
 
+    /**
+     * Renders a cliff tile.
+     *
+     * @param brush The brush used for rendering.
+     * @param x     The x-coordinate to draw the tile.
+     * @param y     The y-coordinate to draw the tile.
+     * @param mode  The mode of the cliff tile.
+     */
     private void renderCliff(Brush brush, int x, int y, String mode) {
         SpriteSheet sheet = CliffSprite.getSpriteSheet(mode);
         if (sheet != null && !sheet.sprites().isEmpty()) {
@@ -103,6 +137,15 @@ public class WorldRenderer {
         }
     }
 
+    /**
+     * Renders the entities in the world.
+     *
+     * @param brush  The brush used for rendering.
+     * @param world  The world to render.
+     * @param viewX  The x-coordinate of the view.
+     * @param viewY  The y-coordinate of the view.
+     * @param window The window to render in.
+     */
     private void renderEntities(Brush brush, World world, double viewX, double viewY, Window window) {
         int halfWindowWidth = window.getWidth() / 2;
         int halfWindowHeight = window.getHeight() / 2;
@@ -133,6 +176,11 @@ public class WorldRenderer {
         brush.drawString("visible(rendered) entities: " + visibleEntities.size(), 10, 65, 0x000000);
     }
 
+    /**
+     * Gets the list of visible entities.
+     *
+     * @return The list of visible entities.
+     */
     public List<Entity> getVisibleEntities() {
         return visibleEntities;
     }

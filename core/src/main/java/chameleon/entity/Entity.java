@@ -97,7 +97,7 @@ public abstract class Entity {
 
             Set<Location> collidingTiles = getCollidingTiles();
             if (collidingTiles.stream().anyMatch(loc -> world.getHeightAt(loc) != world.getHeightAt(original.toTileLocation()))) {
-                return true;
+//                return true;
             }
 
             for (Entity entity : world.getEntities()) {
