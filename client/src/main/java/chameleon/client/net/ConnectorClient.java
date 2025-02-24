@@ -84,9 +84,6 @@ public class ConnectorClient extends Connector {
                 Packet03EntityMove packet = new Packet03EntityMove(unpacker);
                 if (!packet.getTargetUuid().equals(client.getClientPlayer().uuid())) {
                     Entity entity = client.getWorld().getEntityByUuid(packet.getTargetUuid());
-                    System.out.println(entity.uuid());
-                    System.out.println(packet.getDisplacement());
-                    System.out.println(entity.move(packet.getDisplacement(), true));
                     entity.setMoving(packet.isMoving());
                 }
                 break;
