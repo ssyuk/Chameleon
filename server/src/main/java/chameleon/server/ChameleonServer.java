@@ -1,23 +1,15 @@
 package chameleon.server;
 
 import chameleon.Chameleon;
-import chameleon.entity.tile.BrokenTree;
-import chameleon.entity.tile.Stairs;
 import chameleon.net.packet.Packet00Login;
 import chameleon.net.packet.Packet01Disconnect;
 import chameleon.server.entity.ServerPlayer;
 import chameleon.server.net.ConnectorServer;
-import chameleon.utils.Location;
 import chameleon.world.World;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChameleonServer extends Chameleon {
     private ChameleonServer() {
@@ -71,26 +63,6 @@ public class ChameleonServer extends Chameleon {
         long lastTime = System.nanoTime();
         double unprocessed = 0;
         long lastTimer1 = System.currentTimeMillis();
-
-        world.addEntity(new BrokenTree(new Location(world, 1.5, .5)));
-
-        // load height.txt
-        Path path = Paths.get("height.txt");
-        try {
-            AtomicInteger y = new AtomicInteger(-10);
-            Files.lines(path).forEach(s -> {
-                int x = -10;
-                for (char h : s.toCharArray()) {
-                    world.setHeightAt(new Location(world, x, y.get()), Integer.parseInt(h + ""));
-                    x++;
-                }
-                y.getAndIncrement();
-            });
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        world.addEntity(new Stairs(new Location(world, 4, 0)));
 
         while (running) {
             long now = System.nanoTime();

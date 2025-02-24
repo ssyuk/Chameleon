@@ -24,7 +24,7 @@ public class TileEntityRenderer extends EntityRenderer {
 
         BufferedImage image = switch (spriteSheet) {
             case SingleSpriteSheet single -> single.image();
-            case DirectionalSpriteSheet directional -> directional.right();
+            case DirectionalSpriteSheet directional -> directional.image(world, entity.getLocation());
             default -> null;
         };
 

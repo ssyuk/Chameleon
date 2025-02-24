@@ -94,16 +94,17 @@ public abstract class Entity {
         if (getCollisionOption() == CollisionOption.SOLID) {
             World world = location.world();
 
+            Vec2d displacement = location.subtract(original).toVec2d();
+
             Set<Location> collidingTiles = getCollidingTiles(getBoundingBox().larger(.65, .65, .8, .35));
-            Set<Location> collidingTilesForSlope = getCollidingTiles(getBoundingBox().larger(0, 0, -.3, -.3));
+            Set<Location> collidingTilesForSlope = getCollidingTiles(getBoundingBox());
             Set<Location> collidingTilesWithNormal = getCollidingTiles(getBoundingBox());
 
             if (collidingTilesForSlope.stream().noneMatch(loc -> {
                 TileEntity entity = world.getTileEntityAt(loc);
-                return entity != null && entity.getCollisionOption().equals(CollisionOption.SLOPE) && CollisionDetection.isColliding(this.getBoundingBox(), entity.getInteractiveBoundingBox());
-            }) &&
-                    (collidingTiles.stream().anyMatch(loc -> world.getHeightAt(loc) > world.getHeightAt(original.toTileLocation()))
-                            || collidingTilesWithNormal.stream().anyMatch(loc -> world.getHeightAt(loc) < world.getHeightAt(original.toTileLocation())))) {
+                return entity != null && entity.getCollisionOption().equals(CollisionOption.SLOPE);
+            }) && (collidingTiles.stream().anyMatch(loc -> world.getHeightAt(loc) > world.getHeightAt(original.toTileLocation())) ||
+                    collidingTilesWithNormal.stream().anyMatch(loc -> world.getHeightAt(loc) < world.getHeightAt(original.toTileLocation())))) {
                 return true;
             }
 

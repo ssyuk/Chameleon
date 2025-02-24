@@ -54,4 +54,12 @@ public record AABB(Vec2d min, Vec2d max) {
     public AABB larger(double amount) {
         return larger(amount, amount, amount, amount);
     }
+
+    public AABB smaller(double left, double right, double top, double bottom) {
+        return new AABB(min.add(left, top), max.subtract(right, bottom));
+    }
+
+    public AABB smaller(double amount) {
+        return smaller(amount, amount, amount, amount);
+    }
 }

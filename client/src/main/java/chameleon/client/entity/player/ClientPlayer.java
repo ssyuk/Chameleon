@@ -1,15 +1,14 @@
 package chameleon.client.entity.player;
 
 import chameleon.client.ChameleonClient;
+import chameleon.client.utils.KeyHandler;
 import chameleon.entity.player.Player;
 import chameleon.net.packet.Packet03EntityMove;
 import chameleon.utils.Direction;
-import chameleon.client.utils.KeyHandler;
 import chameleon.utils.Location;
 import chameleon.utils.Vec2d;
 
 import java.awt.event.KeyEvent;
-import java.io.IOException;
 import java.util.UUID;
 
 public class ClientPlayer extends Player {
@@ -55,5 +54,10 @@ public class ClientPlayer extends Player {
                 client.getConnector().send(new Packet03EntityMove(uuid(), new Vec2d(0, 0), false)); // stop moving
             }
         }
+
+//        if (client.getMouseHandler().isLeftPressed()) {
+//            client.getWorld().addEntity(new Stairs(client.getMouseHandler().getTargetTile()));
+//            client.getMouseHandler().setLeftPressed(false);
+//        }
     }
 }

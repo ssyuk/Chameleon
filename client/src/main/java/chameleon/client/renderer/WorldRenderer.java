@@ -64,20 +64,21 @@ public class WorldRenderer {
 
         for (int tx = startX; tx < endX; tx++) {
             for (int ty = startY; ty < endY; ty++) {
+                Location location = new Location(world, tx, ty);
                 int drawX = (int) ((tx - viewX + halfWindowWidthTiles) * TILE_SIZE);
                 int drawY = (int) ((ty - viewY + halfWindowHeightTiles) * TILE_SIZE);
 
-                TileSprite sprite = manager.getTileSprite(world.getTileAt(new Location(world, tx, ty)).id());
+                TileSprite sprite = manager.getTileSprite(world.getTileAt(location).id());
                 BufferedImage selectedImage = switch (sprite.getSpriteSheet("sprite")) {
                     case SingleSpriteSheet single -> single.image();
-                    case DirectionalSpriteSheet directional -> directional.right(); // TODO check direction
+                    case DirectionalSpriteSheet directional -> directional.image(world, location);
                     default -> null;
                 };
                 brush.drawImage(drawX, drawY, TILE_SIZE, TILE_SIZE, selectedImage);
 
                 // 절벽 렌더링 추가
-                int currentHeight = world.getHeightAt(new Location(world, tx, ty));
-                Entity tileEntity = world.getTileEntityAt(new Location(world, tx, ty));
+                int currentHeight = world.getHeightAt(location);
+                Entity tileEntity = world.getTileEntityAt(location);
                 if (tileEntity == null || !tileEntity.getCollisionOption().equals(CollisionOption.SLOPE)) {
                     checkNeighborsAndRenderCliff(brush, world, tx, ty, currentHeight, drawX, drawY);
                 }
@@ -146,11 +147,7 @@ public class WorldRenderer {
      */
     private void renderCliff(Brush brush, int x, int y, String mode) {
         SpriteSheet sheet = CliffSprite.getSpriteSheet(mode);
-        BufferedImage selectedImage = switch (sheet) {
-            case SingleSpriteSheet single -> single.image();
-            case DirectionalSpriteSheet directional -> directional.right();
-            default -> null;
-        };
+        BufferedImage selectedImage = ((SingleSpriteSheet) sheet).image();
         brush.drawImage(x, y, TILE_SIZE, TILE_SIZE, selectedImage);
     }
 

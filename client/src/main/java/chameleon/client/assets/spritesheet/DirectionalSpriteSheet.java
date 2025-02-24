@@ -1,5 +1,9 @@
 package chameleon.client.assets.spritesheet;
 
+import chameleon.utils.Direction;
+import chameleon.utils.Location;
+import chameleon.world.World;
+
 import java.awt.image.BufferedImage;
 
 public class DirectionalSpriteSheet extends SpriteSheet {
@@ -37,7 +41,29 @@ public class DirectionalSpriteSheet extends SpriteSheet {
         return method;
     }
 
+    public BufferedImage image(World world, Location location) {
+        return switch (method) {
+            case SLOPE -> {
+                int currentHeight = world.getHeightAt(location);
+                for (Direction value : Direction.values()) {
+                    Location newLocation = location.add(value.dx(), value.dy());
+                    int newHeight = world.getHeightAt(newLocation);
+                    if (newHeight > currentHeight) {
+                        yield switch (value) {
+                            case LEFT -> right;
+                            case RIGHT -> left;
+                            case UP -> down;
+                            case DOWN -> up;
+                        };
+                    }
+                }
+                throw new IllegalStateException("Invalid slope");
+            }
+            case INVALID -> throw new IllegalStateException("Invalid method");
+        };
+    }
+
     public enum DirectionalMethod {
-        SLOPE
+        SLOPE, INVALID
     }
 }

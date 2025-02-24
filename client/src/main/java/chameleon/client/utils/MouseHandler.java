@@ -18,6 +18,7 @@ import static chameleon.client.ChameleonClient.TILE_SIZE;
 
 public class MouseHandler extends MouseAdapter {
     private int mouseX = 0, mouseY = 0;
+    private boolean leftPressed = false, rightPressed = false;
 
     @Override
     public void mouseMoved(MouseEvent e) {
@@ -43,12 +44,42 @@ public class MouseHandler extends MouseAdapter {
         mouseY = e.getY();
     }
 
+    @Override
+    public void mousePressed(MouseEvent e) {
+        if (e.getButton() == MouseEvent.BUTTON1) {
+            leftPressed = true;
+        } else if (e.getButton() == MouseEvent.BUTTON3) {
+            rightPressed = true;
+        }
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        if (e.getButton() == MouseEvent.BUTTON1) {
+            leftPressed = false;
+        } else if (e.getButton() == MouseEvent.BUTTON3) {
+            rightPressed = false;
+        }
+    }
+
     public int getMouseX() {
         return mouseX;
     }
 
     public int getMouseY() {
         return mouseY;
+    }
+
+    public boolean isLeftPressed() {
+        return leftPressed;
+    }
+
+    public void setLeftPressed(boolean leftPressed) {
+        this.leftPressed = leftPressed;
+    }
+
+    public boolean isRightPressed() {
+        return rightPressed;
     }
 
     public Location getTargetTile() {

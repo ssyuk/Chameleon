@@ -44,7 +44,7 @@ public class World {
     }
 
     public void update() {
-        for (Entity entity : entities) entity.update();
+        for (Entity entity : new ArrayList<>(entities)) entity.update();
     }
 
     public void addEntity(Entity entity) {
