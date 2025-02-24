@@ -1,7 +1,7 @@
 package chameleon.client.assets.tile;
 
 import chameleon.client.ChameleonClient;
-import chameleon.client.assets.SpriteSheet;
+import chameleon.client.assets.spritesheet.SpriteSheet;
 
 import java.util.Map;
 
@@ -13,6 +13,6 @@ public class CliffSprite {
     }
 
     public static SpriteSheet getSpriteSheet(String mode) {
-        return sprites.get("default_" + mode);
+        return sprites.get(mode);
     }
 }

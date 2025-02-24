@@ -1,15 +1,18 @@
 package chameleon.client.renderer;
 
 import chameleon.client.ChameleonClient;
-import chameleon.client.assets.SpriteSheet;
+import chameleon.client.assets.AssetManager;
+import chameleon.client.assets.spritesheet.DirectionalSpriteSheet;
+import chameleon.client.assets.spritesheet.SingleSpriteSheet;
+import chameleon.client.assets.spritesheet.SpriteSheet;
 import chameleon.client.assets.tile.CliffSprite;
+import chameleon.client.assets.tile.TileSprite;
 import chameleon.client.renderer.entity.EntityRenderer;
 import chameleon.client.window.Window;
 import chameleon.entity.Entity;
 import chameleon.utils.Location;
 import chameleon.world.World;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -45,6 +48,9 @@ public class WorldRenderer {
      * @param window The window to render in.
      */
     private void renderTile(Brush brush, World world, double viewX, double viewY, Window window) {
+        ChameleonClient client = ChameleonClient.getInstance();
+        AssetManager manager = client.getAssetManager();
+
         int halfWindowWidth = window.getWidth() / 2;
         int halfWindowHeight = window.getHeight() / 2;
         double halfWindowWidthTiles = (double) halfWindowWidth / TILE_SIZE;
@@ -60,12 +66,19 @@ public class WorldRenderer {
                 int drawX = (int) ((tx - viewX + halfWindowWidthTiles) * TILE_SIZE);
                 int drawY = (int) ((ty - viewY + halfWindowHeightTiles) * TILE_SIZE);
 
-                Color color = world.getTileAt(new Location(world, tx, ty)).getColor();
-                brush.drawRect(drawX, drawY, TILE_SIZE, TILE_SIZE, color.getRGB());
+                TileSprite sprite = manager.getTileSprite(world.getTileAt(new Location(world, tx, ty)).id());
+                System.out.println(world.getTileAt(new Location(world, tx, ty)).id());
+                BufferedImage selectedImage = switch (sprite.getSpriteSheet("sprite")) {
+                    case SingleSpriteSheet single -> single.image();
+                    case DirectionalSpriteSheet directional -> directional.right(); // TODO check direction
+                    default -> null;
+                };
+                brush.drawImage(drawX, drawY, TILE_SIZE, TILE_SIZE, selectedImage);
 
                 // 절벽 렌더링 추가
                 int currentHeight = world.getHeightAt(new Location(world, tx, ty));
-                checkNeighborsAndRenderCliff(brush, world, tx, ty, currentHeight, drawX, drawY);
+                if (!world.getTileAt(new Location(world, tx, ty)).isSlope())
+                    checkNeighborsAndRenderCliff(brush, world, tx, ty, currentHeight, drawX, drawY);
             }
         }
     }
@@ -108,13 +121,13 @@ public class WorldRenderer {
         else if (bottom && !right && !left) renderCliff(brush, drawX, drawY, "top_center");
         else if (left && !top && !bottom) renderCliff(brush, drawX, drawY, "middle_right");
 
-        // L-shaped cliffs
+            // L-shaped cliffs
         else if (top && right) renderCliff(brush, drawX, drawY, "inside_bottom_left");
         else if (top/* && left*/) renderCliff(brush, drawX, drawY, "inside_bottom_right");
         else if (bottom && right) renderCliff(brush, drawX, drawY, "inside_top_left");
         else if (bottom/* && left*/) renderCliff(brush, drawX, drawY, "inside_top_right");
 
-        // Corner cliffs
+            // Corner cliffs
         else if (topLeft) renderCliff(brush, drawX, drawY, "bottom_right");
         else if (topRight) renderCliff(brush, drawX, drawY, "bottom_left");
         else if (bottomLeft) renderCliff(brush, drawX, drawY, "top_right");
@@ -131,10 +144,12 @@ public class WorldRenderer {
      */
     private void renderCliff(Brush brush, int x, int y, String mode) {
         SpriteSheet sheet = CliffSprite.getSpriteSheet(mode);
-        if (sheet != null && !sheet.sprites().isEmpty()) {
-            BufferedImage img = sheet.sprites().getFirst();
-            brush.drawImage(x, y, TILE_SIZE, TILE_SIZE, img);
-        }
+        BufferedImage selectedImage = switch (sheet) {
+            case SingleSpriteSheet single -> single.image();
+            case DirectionalSpriteSheet directional -> directional.right();
+            default -> null;
+        };
+        brush.drawImage(x, y, TILE_SIZE, TILE_SIZE, selectedImage);
     }
 
     /**

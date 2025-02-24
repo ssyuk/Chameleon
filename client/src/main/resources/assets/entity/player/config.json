@@ -1,12 +1,11 @@
 {
+  "mode": "multiple_model",
   "idle": {
     "mode": "single_sprite",
-    "sprites": {
-      "down": "idle/down.png",
-      "up": "idle/up.png",
-      "left": "idle/left.png",
-      "right": "idle/right.png"
-    }
+    "down": "idle/down.png",
+    "up": "idle/up.png",
+    "left": "idle/left.png",
+    "right": "idle/right.png"
   },
   "walking": {
     "mode": "animated",

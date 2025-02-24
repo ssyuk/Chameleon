@@ -1,6 +1,9 @@
 package chameleon.client.assets;
 
-import com.google.gson.JsonArray;
+import chameleon.client.assets.spritesheet.AnimatedSpriteSheet;
+import chameleon.client.assets.spritesheet.DirectionalSpriteSheet;
+import chameleon.client.assets.spritesheet.SingleSpriteSheet;
+import chameleon.client.assets.spritesheet.SpriteSheet;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -25,46 +28,62 @@ public class AssetLoader {
         JsonObject config;
         try {
             config = JsonParser.parseReader(Files.newBufferedReader(spriteDir.resolve("config.json"))).getAsJsonObject();
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Could not load config file for asset directory: " + path);
         }
 
-        Map<String, SpriteSheet> result = new HashMap<>();
-
-        for (Map.Entry<String, JsonElement> stringJsonElementEntry : config.entrySet()) {
-            String key = stringJsonElementEntry.getKey();
-            JsonObject object = stringJsonElementEntry.getValue().getAsJsonObject();
-            try {
-                Map<String, SpriteSheet> sprites = readSprite(spriteDir, object);
-                sprites.forEach((s, bufferedImage) -> result.put(key + "_" + s, bufferedImage));
-            } catch (IOException e) {
-                throw new RuntimeException("Could not load '" + key + "' sprites for asset directory: " + path);
-            }
+        try {
+            return readSprite(spriteDir, config);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not load sprites for asset directory: " + path);
         }
-
-        return result;
     }
 
     private Map<String, SpriteSheet> readSprite(Path spriteDir, JsonObject object) throws IOException {
-        String mode = object.get("mode").getAsString();
-        return switch (mode) {
-            case "single_sprite" -> readSingleSprite(spriteDir, object);
-            case "animated" -> readAnimatedSprite(spriteDir, object);
-            case "multiple_texture" -> readMultipleTexture(spriteDir, object);
-            default -> throw new RuntimeException("Invalid mode: " + mode);
-        };
+        try {
+            String mode = object.get("mode").getAsString();
+            return switch (mode) {
+                case "single_sprite" -> readSingleSprite(spriteDir, object);
+                case "multiple_sprite" -> readMultipleSprite(spriteDir, object);
+                case "animated" -> readAnimatedSprite(spriteDir, object);
+                case "multiple_model" -> readMultipleModel(spriteDir, object);
+                case "directional" -> readDirectional(spriteDir, object);
+                default -> throw new RuntimeException("Invalid mode: " + mode);
+            };
+        } catch (Exception e) {
+            System.out.println(spriteDir);
+            throw new RuntimeException(e);
+        }
     }
 
     private Map<String, SpriteSheet> readSingleSprite(Path spriteDir, JsonObject object) throws IOException {
         Map<String, SpriteSheet> result = new HashMap<>();
-        JsonObject sprites = object.getAsJsonObject("sprites");
-        for (Map.Entry<String, JsonElement> stringJsonElementEntry : sprites.entrySet()) {
+        for (Map.Entry<String, JsonElement> stringJsonElementEntry : object.entrySet()) {
             String id = stringJsonElementEntry.getKey();
+            if (id.equalsIgnoreCase("mode")) continue;
+
             String path = stringJsonElementEntry.getValue().getAsString();
 
             // load image
             BufferedImage image = ImageIO.read(spriteDir.resolve(path).toFile());
-            result.put(id, SpriteSheet.singleSprite(image));
+            result.put(id, new SingleSpriteSheet(image));
+        }
+        return result;
+    }
+
+    private Map<String, SpriteSheet> readMultipleSprite(Path spriteDir, JsonObject object) throws IOException {
+        Map<String, SpriteSheet> result = new HashMap<>();
+
+        JsonObject sprites = object.getAsJsonObject("sprites");
+        for (Map.Entry<String, JsonElement> stringJsonElementEntry : sprites.entrySet()) {
+            String id = stringJsonElementEntry.getKey();
+
+            String path = stringJsonElementEntry.getValue().getAsString();
+
+            // load image
+            BufferedImage image = ImageIO.read(spriteDir.resolve(path).toFile());
+
+            result.put(id, new SingleSpriteSheet(image));
         }
         return result;
     }
@@ -77,6 +96,8 @@ public class AssetLoader {
         JsonObject spritesheet = object.getAsJsonObject("spritesheet");
         for (Map.Entry<String, JsonElement> stringJsonElementEntry : spritesheet.entrySet()) {
             String id = stringJsonElementEntry.getKey();
+            if (id.equalsIgnoreCase("mode")) continue;
+
             String path = stringJsonElementEntry.getValue().getAsString();
 
             // load image
@@ -87,26 +108,35 @@ public class AssetLoader {
                 BufferedImage sprite = image.getSubimage(0, i * size, size, size);
                 sprites.add(sprite);
             }
-            result.put(id, SpriteSheet.animatedSprite(sprites, duration));
+            result.put(id, new AnimatedSpriteSheet(sprites, duration));
         }
         return result;
     }
 
-    private Map<String, SpriteSheet> readMultipleTexture(Path spriteDir, JsonObject object) throws IOException {
+    private Map<String, SpriteSheet> readMultipleModel(Path spriteDir, JsonObject object) throws IOException {
         Map<String, SpriteSheet> result = new HashMap<>();
-        JsonObject spritesJson = object.getAsJsonObject("sprites");
-        for (Map.Entry<String, JsonElement> stringJsonElementEntry : spritesJson.entrySet()) {
-            String id = stringJsonElementEntry.getKey();
-            JsonArray paths = stringJsonElementEntry.getValue().getAsJsonArray();
 
-            List<BufferedImage> sprites = new ArrayList<>();
-            for (JsonElement jsonElement : paths) {
-                String path = jsonElement.getAsString();
-                BufferedImage image = ImageIO.read(spriteDir.resolve(path).toFile());
-                sprites.add(image);
-            }
-            result.put(id, new SpriteSheet(sprites, -1, SpriteSheet.SpriteSelection.RANDOM_BY_ENTITY));
+        for (Map.Entry<String, JsonElement> stringJsonElementEntry : object.entrySet()) {
+            String key = stringJsonElementEntry.getKey();
+            if (key.equalsIgnoreCase("mode")) continue;
+
+            JsonObject subobject = stringJsonElementEntry.getValue().getAsJsonObject();
+            Map<String, SpriteSheet> sprites = readSprite(spriteDir, subobject);
+            sprites.forEach((s, bufferedImage) -> result.put(key + "_" + s, bufferedImage));
         }
+        return result;
+    }
+
+    private Map<String, SpriteSheet> readDirectional(Path spriteDir, JsonObject object) throws IOException {
+        Map<String, SpriteSheet> result = new HashMap<>();
+        String directional_method = object.get("directional_method").getAsString();
+
+        BufferedImage left = ImageIO.read(spriteDir.resolve(object.get("left").getAsString()).toFile()),
+                right = ImageIO.read(spriteDir.resolve(object.get("right").getAsString()).toFile()),
+                up = ImageIO.read(spriteDir.resolve(object.get("up").getAsString()).toFile()),
+                down = ImageIO.read(spriteDir.resolve(object.get("down").getAsString()).toFile());
+
+        result.put("sprite", new DirectionalSpriteSheet(left, right, up, down, DirectionalSpriteSheet.DirectionalMethod.valueOf(directional_method.toUpperCase())));
         return result;
     }
 }

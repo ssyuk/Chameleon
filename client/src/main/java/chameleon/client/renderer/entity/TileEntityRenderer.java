@@ -1,16 +1,16 @@
 package chameleon.client.renderer.entity;
 
 import chameleon.client.ChameleonClient;
-import chameleon.client.assets.SpriteSheet;
 import chameleon.client.assets.entity.EntitySprite;
-import chameleon.entity.tile.TileEntity;
+import chameleon.client.assets.spritesheet.SingleSpriteSheet;
+import chameleon.client.assets.spritesheet.SpriteSheet;
 import chameleon.client.renderer.Brush;
-import chameleon.utils.Location;
 import chameleon.client.window.Window;
+import chameleon.entity.tile.TileEntity;
+import chameleon.utils.Location;
 import chameleon.world.World;
 
 import java.awt.image.BufferedImage;
-import java.util.Random;
 
 import static chameleon.client.ChameleonClient.TILE_SIZE;
 
@@ -23,11 +23,8 @@ public class TileEntityRenderer extends EntityRenderer<TileEntity> {
     public void render(Brush brush, World world, double viewX, double viewY, Window window) {
         ChameleonClient client = ChameleonClient.getInstance();
         EntitySprite sprite = client.getAssetManager().getEntitySprite(entity.id());
-        SpriteSheet spriteSheet = sprite.getSpriteSheet(entity);
-        BufferedImage image;
-        if (spriteSheet.selection() == SpriteSheet.SpriteSelection.RANDOM_BY_ENTITY)
-            image = spriteSheet.sprites().get(new Random(entity.uuid().hashCode()).nextInt(spriteSheet.sprites().size()));
-        else image = spriteSheet.sprites().getFirst();
+        SpriteSheet spriteSheet = sprite.getSpriteSheet("sprite");
+        BufferedImage image = ((SingleSpriteSheet) spriteSheet).image();
 
         int halfWindowWidth = window.getWidth() / 2;
         int halfWindowHeight = window.getHeight() / 2;

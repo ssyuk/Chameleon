@@ -96,10 +96,12 @@ public abstract class Entity {
             World world = location.world();
 
             Set<Location> collidingTiles = getCollidingTiles(getBoundingBox().larger(.65, .65, .8, .35));
+            Set<Location> collidingTilesForSlope = getCollidingTiles(getBoundingBox().larger(0, 0, -.3, -.3));
             Set<Location> collidingTilesWithNormal = getCollidingTiles(getBoundingBox());
 
-            if (collidingTiles.stream().anyMatch(loc -> world.getHeightAt(loc) > world.getHeightAt(original.toTileLocation()))
-                    || collidingTilesWithNormal.stream().anyMatch(loc -> world.getHeightAt(loc) < world.getHeightAt(original.toTileLocation()))) {
+            if (collidingTilesForSlope.stream().noneMatch(loc -> world.getTileAt(loc).isSlope()) &&
+                    (collidingTiles.stream().anyMatch(loc -> world.getHeightAt(loc) > world.getHeightAt(original.toTileLocation()))
+                    || collidingTilesWithNormal.stream().anyMatch(loc -> world.getHeightAt(loc) < world.getHeightAt(original.toTileLocation())))) {
                 return true;
             }
 

@@ -1,18 +1,26 @@
 package chameleon.world.tile;
 
-import java.awt.*;
-
 public class Tile {
-    public static final Tile GRASS = new Tile(new Color(0x85a643));
-    public static final Tile DIRT = new Tile(new Color(0x8B4513));
+    public static final Tile GRASS = new Tile("grass");
+    public static final Tile SLOPE = new Tile("slope", true);
 
-    private final Color color;
+    private final String id;
+    private final boolean slope;
 
-    public Tile(Color color) {
-        this.color = color;
+    public Tile(String id, boolean slope) {
+        this.id = id;
+        this.slope = slope;
     }
 
-    public Color getColor() {
-        return color;
+    public Tile(String id) {
+        this(id, false);
+    }
+
+    public String id() {
+        return id;
+    }
+
+    public boolean isSlope() {
+        return slope;
     }
 }

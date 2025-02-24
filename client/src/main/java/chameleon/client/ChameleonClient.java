@@ -18,6 +18,7 @@ import chameleon.utils.Location;
 import chameleon.client.utils.MouseHandler;
 import chameleon.client.window.Window;
 import chameleon.world.World;
+import chameleon.world.tile.Tile;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -153,6 +154,8 @@ public class ChameleonClient extends Chameleon {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        world.setTileAt(new Location(world, 4, 0), Tile.SLOPE);
 
         EntityRenderer.register("player", entity -> new PlayerRenderer((Player) entity));
         EntityRenderer.register("bush", entity -> new TileEntityRenderer((TileEntity) entity));

@@ -1,8 +1,4 @@
 {
-  "default": {
-    "mode": "single_sprite",
-    "sprites": {
-      "down": "img.png"
-    }
-  }
+  "mode": "single_sprite",
+  "sprite": "img.png"
 }

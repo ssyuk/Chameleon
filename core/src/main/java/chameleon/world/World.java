@@ -13,21 +13,21 @@ public class World {
     private List<Entity> entities = new ArrayList<>();
 
     public Tile getTileAt(Location location) {
-        tiles.putIfAbsent(location, Tile.GRASS);
-        return tiles.get(location);
+        tiles.putIfAbsent(location.toTileLocation(), Tile.GRASS);
+        return tiles.get(location.toTileLocation());
     }
 
     public void setTileAt(Location location, Tile tile) {
-        tiles.put(location, tile);
+        tiles.put(location.toTileLocation(), tile);
     }
 
     public int getHeightAt(Location location) {
-        heightMap.putIfAbsent(location, 0);
-        return heightMap.get(location);
+        heightMap.putIfAbsent(location.toTileLocation(), 0);
+        return heightMap.get(location.toTileLocation());
     }
 
     public void setHeightAt(Location location, int height) {
-        heightMap.put(location, height);
+        heightMap.put(location.toTileLocation(), height);
     }
 
     public List<Entity> getEntities() {

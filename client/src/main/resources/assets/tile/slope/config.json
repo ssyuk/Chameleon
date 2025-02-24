@@ -1,0 +1,8 @@
+{
+  "mode": "directional",
+  "directional_method": "slope",
+  "left": "left.png",
+  "right": "right.png",
+  "up": "up.png",
+  "down": "down.png"
+}
