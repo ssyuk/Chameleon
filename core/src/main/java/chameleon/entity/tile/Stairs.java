@@ -30,7 +30,7 @@ public class Stairs extends TileEntity {
 
     @Override
     public AABB getBoundingBox() {
-        return AABB.fromCenterAndSize(location, .1);
+        return AABB.fromCenterAndSize(location, 1);
     }
 
     @Override

@@ -57,7 +57,7 @@ public class DirectionalSpriteSheet extends SpriteSheet {
                         };
                     }
                 }
-                throw new IllegalStateException("Invalid slope");
+                yield down;
             }
             case INVALID -> throw new IllegalStateException("Invalid method");
         };
