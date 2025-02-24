@@ -33,7 +33,7 @@ public record Location(World world, double x, double y) {
 
     public Location toTileLocation() {
         // 버림
-        return new Location(world, Math.floor(x), Math.floor(y));
+        return new Location(world, Math.floor(x) + .5, Math.floor(y) + .5);
     }
 
     public Vec2d toVec2d() {
