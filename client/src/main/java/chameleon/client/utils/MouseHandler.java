@@ -93,9 +93,9 @@ public class MouseHandler extends MouseAdapter {
         double halfWindowWidthTiles = halfWindowWidth / (double) TILE_SIZE;
         double halfWindowHeightTiles = halfWindowHeight / (double) TILE_SIZE;
 
-        int targetX = (int) (((double) mouseX / TILE_SIZE) + viewX - halfWindowWidthTiles);
-        int targetY = (int) (((double) mouseY / TILE_SIZE) + viewY - halfWindowHeightTiles - .5);
-        return new Location(client.getWorld(), targetX, targetY);
+        double targetX = (double) mouseX / TILE_SIZE + viewX - halfWindowWidthTiles;
+        double targetY = (double) mouseY / TILE_SIZE + viewY - halfWindowHeightTiles - .5;
+        return new Location(client.getWorld(), targetX, targetY).toTileLocation();
     }
 
     public @Nullable Entity getTargetEntity() {

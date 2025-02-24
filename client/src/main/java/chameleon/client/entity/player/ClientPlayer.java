@@ -3,7 +3,6 @@ package chameleon.client.entity.player;
 import chameleon.client.ChameleonClient;
 import chameleon.client.utils.KeyHandler;
 import chameleon.entity.player.Player;
-import chameleon.entity.tile.Stairs;
 import chameleon.net.packet.Packet03EntityMove;
 import chameleon.utils.Direction;
 import chameleon.utils.Location;

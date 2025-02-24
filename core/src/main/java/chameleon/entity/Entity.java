@@ -63,7 +63,6 @@ public abstract class Entity {
 
     public boolean move(Direction direction, double speedMultiplier) {
         Location original = location;
-
         this.direction = direction;
         location = location.add(direction.dx() * speedMultiplier, direction.dy() * speedMultiplier);
 
@@ -93,16 +92,19 @@ public abstract class Entity {
     private boolean detectCollision(Location original) {
         if (getCollisionOption() == CollisionOption.SOLID) {
             World world = location.world();
-
-            Set<Location> collidingTiles = getCollidingTiles(getBoundingBox().larger(.65, .65, .8, .35));
+            Set<Location> collidingTiles = getCollidingTiles(getBoundingBox().larger(.65, .65, .8, .45));
             Set<Location> collidingTilesForSlope = getCollidingTiles(getBoundingBox());
             Set<Location> collidingTilesWithNormal = getCollidingTiles(getBoundingBox());
 
-            if (collidingTilesForSlope.stream().noneMatch(loc -> {
+            boolean slopeCollision = collidingTilesForSlope.stream().anyMatch(loc -> {
                 TileEntity entity = world.getTileEntityAt(loc);
                 return entity != null && entity.getCollisionOption().equals(CollisionOption.SLOPE);
-            }) && (collidingTiles.stream().anyMatch(loc -> world.getHeightAt(loc) > world.getHeightAt(original.toTileLocation())) ||
-                    collidingTilesWithNormal.stream().anyMatch(loc -> world.getHeightAt(loc) < world.getHeightAt(original.toTileLocation())))) {
+            });
+
+            boolean heightCollision = collidingTiles.stream().anyMatch(loc -> world.getHeightAt(loc) > world.getHeightAt(original.toTileLocation())) ||
+                    collidingTilesWithNormal.stream().anyMatch(loc -> world.getHeightAt(loc) < world.getHeightAt(original.toTileLocation()));
+
+            if (!slopeCollision && heightCollision) {
                 return true;
             }
 
