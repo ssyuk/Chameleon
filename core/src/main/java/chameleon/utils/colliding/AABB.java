@@ -9,24 +9,23 @@ import chameleon.utils.Vec2d;
  */
 public record AABB(Vec2d min, Vec2d max) {
     /**
-     * Creates an AABB from the center and size of the box.
+     * Creates an AABB from the center location and a uniform size.
      *
-     * @param center the center of the box
-     * @param size   the size of the box
-     * @return the AABB
+     * @param centerLocation the center location of the AABB
+     * @param size           the size of the AABB (both width and height)
+     * @return the created AABB
      */
     public static AABB fromCenterAndSize(Location centerLocation, double size) {
-        Vec2d center = Vec2d.fromLocation(centerLocation);
-        return new AABB(center.subtract(size / 2, size / 2), center.add(size / 2, size / 2));
+        return fromCenterAndSize(centerLocation, size, size);
     }
 
     /**
-     * Creates an AABB from the center and size of the box.
+     * Creates an AABB from the center location and specified width and height.
      *
-     * @param center the center of the box
-     * @param width  the width of the box
-     * @param height the height of the box
-     * @return the AABB
+     * @param centerLocation the center location of the AABB
+     * @param width          the width of the AABB
+     * @param height         the height of the AABB
+     * @return the created AABB
      */
     public static AABB fromCenterAndSize(Location centerLocation, double width, double height) {
         Vec2d center = Vec2d.fromLocation(centerLocation);
@@ -36,7 +35,7 @@ public record AABB(Vec2d min, Vec2d max) {
     /**
      * Creates an AABB from the center and the distances to the left, bottom, right, and top edges.
      *
-     * @param center the center of the box
+     * @param centerLocation the center location of the AABB
      * @param left   the distance from the center to the left edge
      * @param right  the distance from the center to the right edge
      * @param top    the distance from the center to the top edge
@@ -46,5 +45,13 @@ public record AABB(Vec2d min, Vec2d max) {
     public static AABB fromLRTB(Location centerLocation, double left, double right, double top, double bottom) {
         Vec2d center = Vec2d.fromLocation(centerLocation);
         return new AABB(center.subtract(left, top), center.add(right, bottom));
+    }
+
+    public AABB larger(double left, double right, double top, double bottom) {
+        return new AABB(min.subtract(left, top), max.add(right, bottom));
+    }
+
+    public AABB larger(double amount) {
+        return larger(amount, amount, amount, amount);
     }
 }

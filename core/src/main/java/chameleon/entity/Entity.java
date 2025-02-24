@@ -95,9 +95,12 @@ public abstract class Entity {
         if (getCollisionOption() == CollisionOption.SOLID) {
             World world = location.world();
 
-            Set<Location> collidingTiles = getCollidingTiles();
-            if (collidingTiles.stream().anyMatch(loc -> world.getHeightAt(loc) != world.getHeightAt(original.toTileLocation()))) {
-//                return true;
+            Set<Location> collidingTiles = getCollidingTiles(getBoundingBox().larger(.65, .65, .8, .35));
+            Set<Location> collidingTilesWithNormal = getCollidingTiles(getBoundingBox());
+
+            if (collidingTiles.stream().anyMatch(loc -> world.getHeightAt(loc) > world.getHeightAt(original.toTileLocation()))
+                    || collidingTilesWithNormal.stream().anyMatch(loc -> world.getHeightAt(loc) < world.getHeightAt(original.toTileLocation()))) {
+                return true;
             }
 
             for (Entity entity : world.getEntities()) {
@@ -172,8 +175,7 @@ public abstract class Entity {
         }
     }
 
-    public Set<Location> getCollidingTiles() {
-        AABB boundingBox = getBoundingBox();
+    public Set<Location> getCollidingTiles(AABB boundingBox) {
         int minX = (int) Math.floor(boundingBox.min().x());
         int maxX = (int) Math.floor(boundingBox.max().x());
         int minY = (int) Math.floor(boundingBox.min().y());

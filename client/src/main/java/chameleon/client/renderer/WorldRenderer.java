@@ -89,7 +89,7 @@ public class WorldRenderer {
             int ny = ty + dirs[i][1];
             Location neighborLoc = new Location(world, nx, ny);
             int neighborHeight = world.getHeightAt(neighborLoc);
-            higher[i] = (neighborHeight == currentHeight + 1);
+            higher[i] = (neighborHeight > currentHeight);
         }
 
         // {} is higher than current tile
