@@ -9,10 +9,11 @@ import java.util.UUID;
 
 public abstract class TileEntity extends Entity {
     public TileEntity(UUID uuid, Location location) {
-        super(uuid, location);
+        super(uuid, location.toTileLocation());
     }
+
     public TileEntity(Location location) {
-        super(location);
+        super(location.toTileLocation());
     }
 
     @Override
