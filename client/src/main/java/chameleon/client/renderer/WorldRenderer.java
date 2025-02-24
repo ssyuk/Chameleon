@@ -187,8 +187,8 @@ public class WorldRenderer {
             }
 
             EntityRenderer.RENDERER_CACHE.putIfAbsent(entity.uuid(), EntityRenderer.RENDERERS.get(entity.id()).make(entity));
-            EntityRenderer<? extends Entity> renderer = EntityRenderer.RENDERER_CACHE.get(entity.uuid());
-            renderer.render(brush, world, viewX, viewY, window);
+            EntityRenderer renderer = EntityRenderer.RENDERER_CACHE.get(entity.uuid());
+            renderer.render(brush, world, viewX, viewY, window, entity);
         }
 
         brush.drawString("entities: " + world.getEntities().size(), 10, 50, 0x000000);

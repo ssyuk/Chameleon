@@ -1,9 +1,13 @@
 package chameleon.entity.tile;
 
 import chameleon.entity.CollisionOption;
+import chameleon.entity.Entity;
+import chameleon.utils.Direction;
 import chameleon.utils.Location;
 import chameleon.utils.colliding.AABB;
+import org.msgpack.core.MessageUnpacker;
 
+import java.io.IOException;
 import java.util.UUID;
 
 public class Stairs extends TileEntity {
@@ -32,5 +36,11 @@ public class Stairs extends TileEntity {
     @Override
     public CollisionOption getCollisionOption() {
         return CollisionOption.SLOPE;
+    }
+
+    public static Entity unpack(MessageUnpacker unpacker, UUID uuid, Location location, Direction direction) throws IOException {
+        Stairs entity = new Stairs(uuid, location);
+        entity.setDirection(direction);
+        return entity;
     }
 }

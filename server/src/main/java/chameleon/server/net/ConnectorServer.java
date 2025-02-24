@@ -1,6 +1,7 @@
 package chameleon.server.net;
 
 import chameleon.entity.Entity;
+import chameleon.entity.player.Player;
 import chameleon.net.Connector;
 import chameleon.net.packet.*;
 import chameleon.server.ChameleonServer;
@@ -15,7 +16,6 @@ import java.util.concurrent.*;
 
 public class ConnectorServer extends Connector {
     private final int port;
-    private ServerSocket serverSocket;
     private final ExecutorService clientHandlers = Executors.newCachedThreadPool();
 
     public ConnectorServer(int port) {
@@ -24,6 +24,7 @@ public class ConnectorServer extends Connector {
 
     @Override
     public void run() {
+        ServerSocket serverSocket;
         try {
             serverSocket = new ServerSocket(port);
         } catch (IOException e) {
@@ -52,23 +53,23 @@ public class ConnectorServer extends Connector {
                 byte[] data = new byte[length];
                 dataInputStream.readFully(data);
                 System.out.println("[" + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort() + "] " + "Received data... : " + Arrays.toString(data));
-                parsePacket(data, clientSocket);
+                if (parsePacket(data, clientSocket)) break;
             }
-            System.out.println("end s");
+            clientSocket.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void parsePacket(byte[] data, Socket clientSocket) throws IOException {
+    private boolean parsePacket(byte[] data, Socket clientSocket) throws IOException {
         MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(data);
         Packet.PacketTypes type = Packet.lookupPacket(unpacker.unpackInt());
 
         ChameleonServer server = ChameleonServer.getInstance();
 
         System.out.println("[" + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort() + "] " + "Received packet... : " + type);
-        switch (type) {
-            case LOGIN: {
+        return switch (type) {
+            case LOGIN -> {
                 Packet00Login packet = new Packet00Login(unpacker);
                 System.out.println("[" + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort() + "] " + packet.username() + " has connected...");
                 ServerPlayer player = new ServerPlayer(packet.username(), packet.uuid(), packet.location(), clientSocket);
@@ -76,26 +77,32 @@ public class ConnectorServer extends Connector {
 
                 Packet02WorldData worldData = new Packet02WorldData(server.getWorld());
                 sendToAll(worldData);
-                break;
+                yield false;
             }
-            case ENTITY_MOVE: {
+            case DISCONNECT -> {
+                Packet01Disconnect packet = new Packet01Disconnect(unpacker);
+                System.out.println("[SERVER] " + ((Player) server.getWorld().getEntityByUuid(packet.uuid())).getName() + " has left the game.");
+                server.leavePlayer(packet.uuid());
+                yield true;
+            }
+            case ENTITY_MOVE -> {
                 Packet03EntityMove packet = new Packet03EntityMove(unpacker);
                 Entity entity = server.getWorld().getEntityByUuid(packet.getTargetUuid());
                 if (entity == null) {
                     System.out.println("[" + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort() + "] " + "Entity not found... : " + packet.getTargetUuid());
-                    break;
+                    yield false;
                 }
                 if (entity.move(packet.getDisplacement(), false)) {
                     entity.setMoving(packet.isMoving());
                     sendToAll(packet);
                 }
-                break;
+                yield false;
             }
-            case INVALID:
-            default:
+            default -> {
                 System.out.println("[" + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort() + "] " + "Invalid packet received... : " + type);
-                break;
-        }
+                yield false;
+            }
+        };
     }
 
     public void sendToAll(Packet packet) {

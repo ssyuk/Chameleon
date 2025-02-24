@@ -35,6 +35,10 @@ public class World {
         heightMap.put(location.toTileLocation(), height);
     }
 
+    public Map<Location, Integer> getHeightMap() {
+        return heightMap;
+    }
+
     public List<Entity> getEntities() {
         return entities;
     }
@@ -45,6 +49,10 @@ public class World {
 
     public void addEntity(Entity entity) {
         entities.add(entity);
+    }
+
+    public void removeEntity(UUID uuid) {
+        entities.removeIf(entity -> entity.uuid().equals(uuid));
     }
 
     public void setEntities(List<Entity> entities) {

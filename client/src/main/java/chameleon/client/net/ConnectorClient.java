@@ -15,7 +15,6 @@ import java.net.*;
 public class ConnectorClient extends Connector {
     private final InetAddress address;
     private final int port;
-    private Socket socket;
     private DataOutputStream dataOutputStream;
 
     public ConnectorClient(InetAddress address, int port) {
@@ -25,6 +24,7 @@ public class ConnectorClient extends Connector {
 
     @Override
     public void run() {
+        Socket socket;
         try {
             socket = new Socket(address, port);
         } catch (IOException e) {
@@ -66,6 +66,14 @@ public class ConnectorClient extends Connector {
                     System.out.println("[SERVER] " + packet.username() + " has joined the game.");
                     Player player = new Player(packet.username(), packet.uuid(), new Location(client.getWorld(), packet.location().x(), packet.location().y()));
                     client.getWorld().addEntity(player);
+                }
+                break;
+            }
+            case DISCONNECT: {
+                Packet01Disconnect packet = new Packet01Disconnect(unpacker);
+                if (!packet.uuid().equals(client.getClientPlayer().uuid())) {
+                    System.out.println("[SERVER] " + ((Player) client.getWorld().getEntityByUuid(packet.uuid())).getName() + " has left the game.");
+                    client.getWorld().removeEntity(packet.uuid());
                 }
                 break;
             }
