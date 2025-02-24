@@ -94,8 +94,6 @@ public abstract class Entity {
         if (getCollisionOption() == CollisionOption.SOLID) {
             World world = location.world();
 
-            Vec2d displacement = location.subtract(original).toVec2d();
-
             Set<Location> collidingTiles = getCollidingTiles(getBoundingBox().larger(.65, .65, .8, .35));
             Set<Location> collidingTilesForSlope = getCollidingTiles(getBoundingBox());
             Set<Location> collidingTilesWithNormal = getCollidingTiles(getBoundingBox());
