@@ -12,6 +12,7 @@ import chameleon.client.window.Window;
 import chameleon.entity.Entity;
 import chameleon.utils.Location;
 import chameleon.world.World;
+import chameleon.world.tile.Tile;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ public class WorldRenderer {
         World world = client.getWorld();
         Window window = client.getWindow();
         renderTile(brush, world, viewX, viewY, window);
+        renderUpperTile(brush, world, viewX, viewY, window);
         renderEntities(brush, world, viewX, viewY, window);
     }
 
@@ -67,7 +69,6 @@ public class WorldRenderer {
                 int drawY = (int) ((ty - viewY + halfWindowHeightTiles) * TILE_SIZE);
 
                 TileSprite sprite = manager.getTileSprite(world.getTileAt(new Location(world, tx, ty)).id());
-                System.out.println(world.getTileAt(new Location(world, tx, ty)).id());
                 BufferedImage selectedImage = switch (sprite.getSpriteSheet("sprite")) {
                     case SingleSpriteSheet single -> single.image();
                     case DirectionalSpriteSheet directional -> directional.right(); // TODO check direction
@@ -77,8 +78,51 @@ public class WorldRenderer {
 
                 // 절벽 렌더링 추가
                 int currentHeight = world.getHeightAt(new Location(world, tx, ty));
-                if (!world.getTileAt(new Location(world, tx, ty)).isSlope())
+                Tile upperTile = world.getUpperTileAt(new Location(world, tx, ty));
+                if (upperTile == null || !upperTile.isSlope())
                     checkNeighborsAndRenderCliff(brush, world, tx, ty, currentHeight, drawX, drawY);
+            }
+        }
+    }
+
+    /**
+     * Renders the upper tiles of the world.
+     *
+     * @param brush  The brush used for rendering.
+     * @param world  The world to render.
+     * @param viewX  The x-coordinate of the view.
+     * @param viewY  The y-coordinate of the view.
+     * @param window The window to render in.
+     */
+    private void renderUpperTile(Brush brush, World world, double viewX, double viewY, Window window) {
+        ChameleonClient client = ChameleonClient.getInstance();
+        AssetManager manager = client.getAssetManager();
+
+        int halfWindowWidth = window.getWidth() / 2;
+        int halfWindowHeight = window.getHeight() / 2;
+        double halfWindowWidthTiles = (double) halfWindowWidth / TILE_SIZE;
+        double halfWindowHeightTiles = (double) halfWindowHeight / TILE_SIZE;
+
+        int startX = (int) (viewX - halfWindowWidthTiles) - 1;
+        int endX = (int) (viewX + halfWindowWidthTiles) + 1;
+        int startY = (int) (viewY - halfWindowHeightTiles) - 1;
+        int endY = (int) (viewY + halfWindowHeightTiles) + 1;
+
+        for (int tx = startX; tx < endX; tx++) {
+            for (int ty = startY; ty < endY; ty++) {
+                int drawX = (int) ((tx - viewX + halfWindowWidthTiles) * TILE_SIZE);
+                int drawY = (int) ((ty - viewY + halfWindowHeightTiles) * TILE_SIZE);
+
+                Tile upperTile = world.getUpperTileAt(new Location(world, tx, ty));
+                if (upperTile == null) continue;
+
+                TileSprite sprite = manager.getTileSprite(upperTile.id());
+                BufferedImage selectedImage = switch (sprite.getSpriteSheet("sprite")) {
+                    case SingleSpriteSheet single -> single.image();
+                    case DirectionalSpriteSheet directional -> directional.right(); // TODO check direction
+                    default -> null;
+                };
+                brush.drawImage(drawX, drawY, TILE_SIZE, TILE_SIZE, selectedImage);
             }
         }
     }

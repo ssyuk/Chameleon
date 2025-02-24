@@ -9,6 +9,7 @@ import java.util.*;
 
 public class World {
     private final Map<Location, Tile> tiles = new HashMap<>();
+    private final Map<Location, Tile> upperTiles = new HashMap<>(); // TODO 타일 시스템 정리
     private final Map<Location, Integer> heightMap = new HashMap<>();
     private List<Entity> entities = new ArrayList<>();
 
@@ -19,6 +20,14 @@ public class World {
 
     public void setTileAt(Location location, Tile tile) {
         tiles.put(location.toTileLocation(), tile);
+    }
+
+    public @Nullable Tile getUpperTileAt(Location location) {
+        return upperTiles.get(location.toTileLocation());
+    }
+
+    public void setUpperTileAt(Location location, @Nullable Tile tile) {
+        upperTiles.put(location.toTileLocation(), tile);
     }
 
     public int getHeightAt(Location location) {

@@ -155,7 +155,7 @@ public class ChameleonClient extends Chameleon {
             throw new RuntimeException(e);
         }
 
-        world.setTileAt(new Location(world, 4, 0), Tile.SLOPE);
+        world.setUpperTileAt(new Location(world, 4, 0), Tile.SLOPE);
 
         EntityRenderer.register("player", entity -> new PlayerRenderer((Player) entity));
         EntityRenderer.register("bush", entity -> new TileEntityRenderer((TileEntity) entity));
