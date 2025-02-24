@@ -5,20 +5,20 @@ import chameleon.client.assets.AssetLoader;
 import chameleon.client.assets.AssetManager;
 import chameleon.client.entity.player.ClientPlayer;
 import chameleon.client.net.ConnectorClient;
+import chameleon.client.renderer.MasterRenderer;
+import chameleon.client.renderer.entity.EntityRenderer;
+import chameleon.client.renderer.entity.PlayerRenderer;
+import chameleon.client.renderer.entity.TileEntityRenderer;
+import chameleon.client.utils.KeyHandler;
+import chameleon.client.utils.MouseHandler;
+import chameleon.client.window.Window;
 import chameleon.entity.Entity;
 import chameleon.entity.player.Player;
 import chameleon.entity.tile.BrokenTree;
+import chameleon.entity.tile.Stairs;
 import chameleon.entity.tile.TileEntity;
-import chameleon.client.renderer.MasterRenderer;
-import chameleon.client.renderer.entity.TileEntityRenderer;
-import chameleon.client.renderer.entity.EntityRenderer;
-import chameleon.client.renderer.entity.PlayerRenderer;
-import chameleon.client.utils.KeyHandler;
 import chameleon.utils.Location;
-import chameleon.client.utils.MouseHandler;
-import chameleon.client.window.Window;
 import chameleon.world.World;
-import chameleon.world.tile.Tile;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -155,12 +155,13 @@ public class ChameleonClient extends Chameleon {
             throw new RuntimeException(e);
         }
 
-        world.setUpperTileAt(new Location(world, 4, 0), Tile.SLOPE);
+        world.addEntity(new Stairs(new Location(world, 4, 0)));
 
         EntityRenderer.register("player", entity -> new PlayerRenderer((Player) entity));
         EntityRenderer.register("bush", entity -> new TileEntityRenderer((TileEntity) entity));
         EntityRenderer.register("weed", entity -> new TileEntityRenderer((TileEntity) entity));
         EntityRenderer.register("broken_tree", entity -> new TileEntityRenderer((TileEntity) entity));
+        EntityRenderer.register("stairs", entity -> new TileEntityRenderer((TileEntity) entity));
 
         long lastTime = System.nanoTime();
         long lastRender = System.nanoTime();

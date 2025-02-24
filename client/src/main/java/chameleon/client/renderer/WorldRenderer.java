@@ -9,10 +9,10 @@ import chameleon.client.assets.tile.CliffSprite;
 import chameleon.client.assets.tile.TileSprite;
 import chameleon.client.renderer.entity.EntityRenderer;
 import chameleon.client.window.Window;
+import chameleon.entity.CollisionOption;
 import chameleon.entity.Entity;
 import chameleon.utils.Location;
 import chameleon.world.World;
-import chameleon.world.tile.Tile;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -36,7 +36,6 @@ public class WorldRenderer {
         World world = client.getWorld();
         Window window = client.getWindow();
         renderTile(brush, world, viewX, viewY, window);
-        renderUpperTile(brush, world, viewX, viewY, window);
         renderEntities(brush, world, viewX, viewY, window);
     }
 
@@ -78,51 +77,10 @@ public class WorldRenderer {
 
                 // 절벽 렌더링 추가
                 int currentHeight = world.getHeightAt(new Location(world, tx, ty));
-                Tile upperTile = world.getUpperTileAt(new Location(world, tx, ty));
-                if (upperTile == null || !upperTile.isSlope())
+                Entity tileEntity = world.getTileEntityAt(new Location(world, tx, ty));
+                if (tileEntity == null || !tileEntity.getCollisionOption().equals(CollisionOption.SLOPE)) {
                     checkNeighborsAndRenderCliff(brush, world, tx, ty, currentHeight, drawX, drawY);
-            }
-        }
-    }
-
-    /**
-     * Renders the upper tiles of the world.
-     *
-     * @param brush  The brush used for rendering.
-     * @param world  The world to render.
-     * @param viewX  The x-coordinate of the view.
-     * @param viewY  The y-coordinate of the view.
-     * @param window The window to render in.
-     */
-    private void renderUpperTile(Brush brush, World world, double viewX, double viewY, Window window) {
-        ChameleonClient client = ChameleonClient.getInstance();
-        AssetManager manager = client.getAssetManager();
-
-        int halfWindowWidth = window.getWidth() / 2;
-        int halfWindowHeight = window.getHeight() / 2;
-        double halfWindowWidthTiles = (double) halfWindowWidth / TILE_SIZE;
-        double halfWindowHeightTiles = (double) halfWindowHeight / TILE_SIZE;
-
-        int startX = (int) (viewX - halfWindowWidthTiles) - 1;
-        int endX = (int) (viewX + halfWindowWidthTiles) + 1;
-        int startY = (int) (viewY - halfWindowHeightTiles) - 1;
-        int endY = (int) (viewY + halfWindowHeightTiles) + 1;
-
-        for (int tx = startX; tx < endX; tx++) {
-            for (int ty = startY; ty < endY; ty++) {
-                int drawX = (int) ((tx - viewX + halfWindowWidthTiles) * TILE_SIZE);
-                int drawY = (int) ((ty - viewY + halfWindowHeightTiles) * TILE_SIZE);
-
-                Tile upperTile = world.getUpperTileAt(new Location(world, tx, ty));
-                if (upperTile == null) continue;
-
-                TileSprite sprite = manager.getTileSprite(upperTile.id());
-                BufferedImage selectedImage = switch (sprite.getSpriteSheet("sprite")) {
-                    case SingleSpriteSheet single -> single.image();
-                    case DirectionalSpriteSheet directional -> directional.right(); // TODO check direction
-                    default -> null;
-                };
-                brush.drawImage(drawX, drawY, TILE_SIZE, TILE_SIZE, selectedImage);
+                }
             }
         }
     }
@@ -217,7 +175,9 @@ public class WorldRenderer {
                     int drawY = (int) ((entity.getLocation().y() - viewY + halfWindowHeightTiles - .5) * TILE_SIZE);
                     return drawX >= -TILE_SIZE && drawX <= window.getWidth() && drawY >= -TILE_SIZE && drawY <= window.getHeight();
                 })
-                .sorted(Comparator.comparingDouble(entity -> entity.getLocation().y())).toList();
+                .sorted(Comparator.<Entity>comparingInt(entity -> entity.getCollisionOption() == CollisionOption.SLOPE ? 0 : 1)
+                        .thenComparingDouble(entity -> entity.getLocation().y()))
+                .toList();
 
         for (Entity entity : visibleEntities) {
             // if entity is not within view, continue (entity location, view x/y is in tile coordinates)

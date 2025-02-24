@@ -2,9 +2,7 @@ package chameleon.entity;
 
 import chameleon.Chameleon;
 import chameleon.entity.player.Player;
-import chameleon.entity.tile.BrokenTree;
-import chameleon.entity.tile.Bush;
-import chameleon.entity.tile.Weed;
+import chameleon.entity.tile.*;
 import chameleon.utils.Direction;
 import chameleon.utils.Location;
 import chameleon.utils.Vec2d;
@@ -26,6 +24,7 @@ public abstract class Entity {
         ENTITY_REGISTRY.put("bush", Bush.class);
         ENTITY_REGISTRY.put("weed", Weed.class);
         ENTITY_REGISTRY.put("broken_tree", BrokenTree.class);
+        ENTITY_REGISTRY.put("stairs", Stairs.class);
     }
 
     private final UUID uuid;
@@ -99,9 +98,12 @@ public abstract class Entity {
             Set<Location> collidingTilesForSlope = getCollidingTiles(getBoundingBox().larger(0, 0, -.3, -.3));
             Set<Location> collidingTilesWithNormal = getCollidingTiles(getBoundingBox());
 
-            if (collidingTilesForSlope.stream().noneMatch(loc -> world.getUpperTileAt(loc) != null && world.getUpperTileAt(loc).isSlope()) &&
+            if (collidingTilesForSlope.stream().noneMatch(loc -> {
+                TileEntity entity = world.getTileEntityAt(loc);
+                return entity != null && entity.getCollisionOption().equals(CollisionOption.SLOPE) && CollisionDetection.isColliding(this.getBoundingBox(), entity.getInteractiveBoundingBox());
+            }) &&
                     (collidingTiles.stream().anyMatch(loc -> world.getHeightAt(loc) > world.getHeightAt(original.toTileLocation()))
-                    || collidingTilesWithNormal.stream().anyMatch(loc -> world.getHeightAt(loc) < world.getHeightAt(original.toTileLocation())))) {
+                            || collidingTilesWithNormal.stream().anyMatch(loc -> world.getHeightAt(loc) < world.getHeightAt(original.toTileLocation())))) {
                 return true;
             }
 

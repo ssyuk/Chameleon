@@ -16,9 +16,9 @@ public class AssetManager {
         entitySprites.put("bush", new EntitySprite("bush"));
         entitySprites.put("weed", new EntitySprite("weed"));
         entitySprites.put("broken_tree", new EntitySprite("broken_tree"));
+        entitySprites.put("stairs", new EntitySprite("stairs"));
 
         tileSprites.put("grass", new TileSprite("grass"));
-        tileSprites.put("slope", new TileSprite("slope"));
 
         CliffSprite.loadSprite();
     }

@@ -2,6 +2,7 @@ package chameleon.client.renderer.entity;
 
 import chameleon.client.ChameleonClient;
 import chameleon.client.assets.entity.EntitySprite;
+import chameleon.client.assets.spritesheet.DirectionalSpriteSheet;
 import chameleon.client.assets.spritesheet.SingleSpriteSheet;
 import chameleon.client.assets.spritesheet.SpriteSheet;
 import chameleon.client.renderer.Brush;
@@ -24,7 +25,12 @@ public class TileEntityRenderer extends EntityRenderer<TileEntity> {
         ChameleonClient client = ChameleonClient.getInstance();
         EntitySprite sprite = client.getAssetManager().getEntitySprite(entity.id());
         SpriteSheet spriteSheet = sprite.getSpriteSheet("sprite");
-        BufferedImage image = ((SingleSpriteSheet) spriteSheet).image();
+
+        BufferedImage image = switch (spriteSheet) {
+            case SingleSpriteSheet single -> single.image();
+            case DirectionalSpriteSheet directional -> directional.right();
+            default -> null;
+        };
 
         int halfWindowWidth = window.getWidth() / 2;
         int halfWindowHeight = window.getHeight() / 2;

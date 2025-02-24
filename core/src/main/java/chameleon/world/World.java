@@ -1,6 +1,7 @@
 package chameleon.world;
 
 import chameleon.entity.Entity;
+import chameleon.entity.tile.TileEntity;
 import chameleon.utils.Location;
 import chameleon.world.tile.Tile;
 import org.jetbrains.annotations.Nullable;
@@ -9,7 +10,6 @@ import java.util.*;
 
 public class World {
     private final Map<Location, Tile> tiles = new HashMap<>();
-    private final Map<Location, Tile> upperTiles = new HashMap<>(); // TODO 타일 시스템 정리
     private final Map<Location, Integer> heightMap = new HashMap<>();
     private List<Entity> entities = new ArrayList<>();
 
@@ -22,12 +22,8 @@ public class World {
         tiles.put(location.toTileLocation(), tile);
     }
 
-    public @Nullable Tile getUpperTileAt(Location location) {
-        return upperTiles.get(location.toTileLocation());
-    }
-
-    public void setUpperTileAt(Location location, @Nullable Tile tile) {
-        upperTiles.put(location.toTileLocation(), tile);
+    public @Nullable TileEntity getTileEntityAt(Location location) {
+        return (TileEntity) entities.stream().filter(entity -> entity instanceof TileEntity && entity.getLocation().equals(location.toTileLocation())).findFirst().orElse(null);
     }
 
     public int getHeightAt(Location location) {
