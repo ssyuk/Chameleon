@@ -146,13 +146,18 @@ public class ChameleonClient extends Chameleon {
 
         assetManager.load();
 
-        setScreen(new TitleScreen());
-
         EntityRenderer.register("player", entity -> new PlayerRenderer());
         EntityRenderer.register("bush", entity -> new TileEntityRenderer());
         EntityRenderer.register("weed", entity -> new TileEntityRenderer());
         EntityRenderer.register("broken_tree", entity -> new TileEntityRenderer());
         EntityRenderer.register("stairs", entity -> new TileEntityRenderer());
+
+        setScreen(new TitleScreen());
+
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+            e.printStackTrace();
+            System.out.println("An error occurred: " + e.getMessage());
+        });
 
         long lastTime = System.nanoTime();
         long lastRender = System.nanoTime();
