@@ -16,6 +16,7 @@ public class ConnectorClient extends Connector {
     private final InetAddress address;
     private final int port;
     private DataOutputStream dataOutputStream;
+    private boolean connected = false;
 
     public ConnectorClient(InetAddress address, int port) {
         this.address = address;
@@ -78,6 +79,7 @@ public class ConnectorClient extends Connector {
             case SERVER_INFO: {
                 Packet02ServerInfo packet = new Packet02ServerInfo(unpacker);
                 System.out.println("Connected!!!");
+                connected = true;
                 break;
             }
             case WORLD_DATA: {
@@ -125,5 +127,9 @@ public class ConnectorClient extends Connector {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean isConnected() {
+        return connected;
     }
 }

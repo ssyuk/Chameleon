@@ -127,17 +127,21 @@ public class ChameleonClient extends Chameleon {
 
         assetManager.load();
 
+        world = new World(new NetworkWorldGenerator());
+        player = new ClientPlayer("player" + (new Random().nextInt(899) + 100), new Location(world, 0.5, 0.5));
+
         try {
             String address = JOptionPane.showInputDialog(null, "Address", "Enter the server address (without port)", JOptionPane.QUESTION_MESSAGE);
             int port = Integer.parseInt(JOptionPane.showInputDialog(null, "Port", "Enter the server port", JOptionPane.QUESTION_MESSAGE));
             connector = new ConnectorClient(InetAddress.getByName(address), port);
             connector.start();
-        } catch (UnknownHostException e) {
+            while (!connector.isConnected()) {
+                Thread.sleep(100);
+                System.out.println("Waiting for connection...");
+            }
+        } catch (UnknownHostException | InterruptedException e) {
             throw new RuntimeException(e);
         }
-
-        world = new World(new NetworkWorldGenerator());
-        player = new ClientPlayer("player" + (new Random().nextInt(899) + 100), new Location(world, 0.5, 0.5));
 
         world.addEntity(player);
 
