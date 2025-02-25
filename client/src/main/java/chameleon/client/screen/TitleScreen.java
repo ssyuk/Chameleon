@@ -14,12 +14,12 @@ public class TitleScreen extends Screen {
         int buttonWidth = width/2;
 
         addComponent(new Button(width/2-buttonWidth/2, 100, buttonWidth, 60, "Singleplayer", () -> {
-            client.playSingleplayer();
             closeScreen();
+            client.playSingleplayer();
         }));
         addComponent(new Button(width/2-buttonWidth/2, 200, buttonWidth, 50, "Multiplayer",() -> {
-            client.playMultiplayer();
             closeScreen();
+            client.playMultiplayer();
         }));
         addComponent(new Button(width/2-buttonWidth/2, 300, buttonWidth, 50, "Options", () -> System.out.println("Options")));
         addComponent(new Button(width/2-buttonWidth/2, 400, buttonWidth, 50, "Quit", client::end));

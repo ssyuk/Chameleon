@@ -33,7 +33,9 @@ public class ConnectorClient extends Connector {
         try {
             socket = new Socket(address, port);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println("Failed to connect to the server.");
+            ended = true;
+            return;
         }
         try (OutputStream outputStream = socket.getOutputStream();
              DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
@@ -56,8 +58,9 @@ public class ConnectorClient extends Connector {
 
             socket.close();
             ended = true;
+        } catch (EOFException ignored) {
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -147,6 +150,10 @@ public class ConnectorClient extends Connector {
 
     public void send(byte[] data) {
         try {
+            if (socket == null) {
+                ended = true;
+                return;
+            }
             if (!socket.isClosed()) {
                 dataOutputStream.writeInt(data.length);
                 dataOutputStream.write(data);

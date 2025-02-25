@@ -27,8 +27,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Random;
 
@@ -220,15 +220,7 @@ public class ChameleonClient extends Chameleon {
             if (!isOnline()) world.update();
             else player.update();
 
-            if (keyHandler.isKeyDown(KeyEvent.VK_ESCAPE)) {
-                if (isOnline()) {
-                    connector.send(new Packet01Disconnect(getClientPlayer().uuid()));
-                }
-                world = null;
-                player = null;
-                connector = null;
-                setScreen(new TitleScreen());
-            }
+            if (keyHandler.isKeyDown(KeyEvent.VK_ESCAPE)) leaveGame();
         }
     }
 
@@ -277,14 +269,26 @@ public class ChameleonClient extends Chameleon {
 
             if (connector.isEnded()) {
                 System.out.println("Connection ended");
-                end();
+                leaveGame();
                 return;
             }
-        } catch (UnknownHostException | InterruptedException e) {
+        } catch (IOException | NumberFormatException e) {
             e.printStackTrace();
+            leaveGame();
             return;
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
-
         world.addEntity(player);
+    }
+
+    public void leaveGame() {
+        if (isOnline()) {
+            connector.send(new Packet01Disconnect(getClientPlayer().uuid()));
+        }
+        world = null;
+        player = null;
+        connector = null;
+        setScreen(new TitleScreen());
     }
 }

@@ -34,7 +34,10 @@ public abstract class Screen {
         for (Component component : components) {
             if (mouseX >= component.x() && mouseX <= component.x() + component.width() &&
                     mouseY >= component.y() && mouseY <= component.y() + component.height()) {
-                if (client.getMouseHandler().isLeftPressed()) component.onPressed();
+                if (client.getMouseHandler().isLeftPressed()) {
+                    component.onPressed();
+                    client.getMouseHandler().setLeftPressed(false);
+                }
             }
         }
     }
