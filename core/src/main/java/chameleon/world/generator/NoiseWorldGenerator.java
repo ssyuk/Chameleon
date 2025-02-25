@@ -9,7 +9,7 @@ import de.articdive.jnoise.pipeline.JNoise;
 public class NoiseWorldGenerator extends WorldGenerator {
     private final JNoise noisePipeline;
 
-    public NoiseWorldGenerator(int seed) {
+    public NoiseWorldGenerator(long seed) {
         noisePipeline = JNoise.newBuilder().perlin(seed, Interpolation.LINEAR, FadeFunction.QUINTIC_POLY).scale(1 / 32d)
                 .addModifier(v -> (v + 1) / 2.0).clamp(0.0, 1.0).build();
     }

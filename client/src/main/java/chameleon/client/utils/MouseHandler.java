@@ -100,9 +100,8 @@ public class MouseHandler extends MouseAdapter {
 
     public @Nullable Entity getTargetEntity() {
         ChameleonClient client = ChameleonClient.getInstance();
-        World world = client.getWorld();
         Window window = client.getWindow();
-        WorldRenderer worldRenderer = client.getRenderer().getGameRenderer().getWorldRenderer();
+        WorldRenderer worldRenderer = client.getRenderer().getWorldRenderer();
         Player player = client.getClientPlayer();
         double viewX = player.getLocation().x(), viewY = player.getLocation().y(); // center of the screen
 

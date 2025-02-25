@@ -5,24 +5,28 @@ import chameleon.client.assets.AssetLoader;
 import chameleon.client.assets.AssetManager;
 import chameleon.client.entity.player.ClientPlayer;
 import chameleon.client.net.ConnectorClient;
-import chameleon.client.renderer.MasterRenderer;
+import chameleon.client.renderer.Brush;
+import chameleon.client.renderer.GameRenderer;
 import chameleon.client.renderer.entity.EntityRenderer;
 import chameleon.client.renderer.entity.PlayerRenderer;
 import chameleon.client.renderer.entity.TileEntityRenderer;
+import chameleon.client.screen.Screen;
+import chameleon.client.screen.TitleScreen;
 import chameleon.client.utils.KeyHandler;
 import chameleon.client.utils.MouseHandler;
 import chameleon.client.window.Window;
-import chameleon.utils.Version;
-import chameleon.world.generator.NetworkWorldGenerator;
 import chameleon.entity.Entity;
-import chameleon.entity.tile.BrokenTree;
-import chameleon.entity.tile.Stairs;
 import chameleon.net.packet.Packet01Disconnect;
 import chameleon.utils.Location;
+import chameleon.utils.Version;
 import chameleon.world.World;
+import chameleon.world.generator.NetworkWorldGenerator;
+import chameleon.world.generator.NoiseWorldGenerator;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
@@ -45,10 +49,11 @@ public class ChameleonClient extends Chameleon {
     private final KeyHandler keyHandler = new KeyHandler();
     private final MouseHandler mouseHandler = new MouseHandler();
     private final Window window = new Window(this);
-    private final MasterRenderer renderer = new MasterRenderer();
+    private final GameRenderer renderer = new GameRenderer();
     private final AssetManager assetManager = new AssetManager();
     private final AssetLoader assetLoader = new AssetLoader();
 
+    private Screen screen;
     private World world;
     private ClientPlayer player;
 
@@ -84,7 +89,7 @@ public class ChameleonClient extends Chameleon {
         return window;
     }
 
-    public MasterRenderer getRenderer() {
+    public GameRenderer getRenderer() {
         return renderer;
     }
 
@@ -94,6 +99,14 @@ public class ChameleonClient extends Chameleon {
 
     public AssetLoader getAssetLoader() {
         return assetLoader;
+    }
+
+    public Screen getScreen() {
+        return screen;
+    }
+
+    public void setScreen(Screen screen) {
+        this.screen = screen;
     }
 
     public World getWorld() {
@@ -133,50 +146,7 @@ public class ChameleonClient extends Chameleon {
 
         assetManager.load();
 
-        world = new World(new NetworkWorldGenerator());
-        player = new ClientPlayer("player" + (new Random().nextInt(899) + 100), new Location(world, 0.5, 0.5));
-
-        try {
-            String address = JOptionPane.showInputDialog(null, "Address", "Enter the server address (without port)", JOptionPane.QUESTION_MESSAGE);
-            int port = Integer.parseInt(JOptionPane.showInputDialog(null, "Port", "Enter the server port", JOptionPane.QUESTION_MESSAGE));
-            connector = new ConnectorClient(InetAddress.getByName(address), port);
-            connector.start();
-            while (!connector.isConnected() && !connector.isEnded()) {
-                Thread.sleep(100);
-                System.out.println("Waiting for connection...");
-            }
-
-            if (connector.isEnded()) {
-                System.out.println("Connection ended");
-                end();
-                return;
-            }
-        } catch (UnknownHostException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
-        world.addEntity(player);
-
-        world.addEntity(new BrokenTree(new Location(world, 1.5, .5)));
-
-//        // load height.txt
-//        Path path = Paths.get("height.txt");
-//        try {
-//            AtomicInteger y = new AtomicInteger(-10);
-//            Files.lines(path).forEach(s -> {
-//                int x = -10;
-//                for (char h : s.toCharArray()) {
-//                    world.setHeightAt(new Location(world, x, y.get()), Integer.parseInt(h + ""));
-//                    x++;
-//                }
-//                y.getAndIncrement();
-//            });
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-
-        world.addEntity(new Stairs(new Location(world, 4, 0)));
-        world.addEntity(new Stairs(new Location(world, 1, 2)));
+        setScreen(new TitleScreen());
 
         EntityRenderer.register("player", entity -> new PlayerRenderer());
         EntityRenderer.register("bush", entity -> new TileEntityRenderer());
@@ -203,7 +173,7 @@ public class ChameleonClient extends Chameleon {
             if ((now - lastRender) / 1.0E9 > 1.0 / 120/*frames per second*/) {
                 frames++;
                 lastRender = System.nanoTime();
-                renderer.render();
+                render();
             }
 
             if (System.currentTimeMillis() - lastTimer1 > 1000) {
@@ -227,13 +197,47 @@ public class ChameleonClient extends Chameleon {
         return updates;
     }
 
+    public void render() {
+        Graphics graphics = window.getBufferStrategy().getDrawGraphics();
+        Brush brush = new Brush(window.getInsets(), graphics);
+
+        brush.drawRect(0, 0, window.getWidth(), window.getHeight(), 0xFFFFFF);
+
+        if (isInGame()) {
+            renderer.render(brush);
+        }
+
+        if (screen != null) screen.render(brush);
+
+        graphics.dispose();
+        window.getBufferStrategy().show();
+    }
+
     public void update() {
-        if (!isOnline()) world.update();
-        else player.update();
+        if (screen != null) screen.update();
+
+        if (isInGame()) {
+            if (!isOnline()) world.update();
+            else player.update();
+
+            if (keyHandler.isKeyDown(KeyEvent.VK_ESCAPE)) {
+                if (isOnline()) {
+                    connector.send(new Packet01Disconnect(getClientPlayer().uuid()));
+                }
+                world = null;
+                player = null;
+                connector = null;
+                setScreen(new TitleScreen());
+            }
+        }
     }
 
     public int currentUpdateCount() {
         return updates;
+    }
+
+    public boolean isInGame() {
+        return world != null;
     }
 
     public void end() {
@@ -242,5 +246,45 @@ public class ChameleonClient extends Chameleon {
         }
         running = false;
         System.out.println("Ending game");
+    }
+
+    public void playSingleplayer() {
+        connector = null;
+
+        world = new World(new NoiseWorldGenerator(new Random().nextLong()));
+        player = new ClientPlayer("player" + (new Random().nextInt(899) + 100), new Location(world, 0.5, 0.5));
+
+        world.addEntity(player);
+    }
+
+    public void playMultiplayer() {
+        world = new World(new NetworkWorldGenerator());
+        player = new ClientPlayer("player" + (new Random().nextInt(899) + 100), new Location(world, 0.5, 0.5));
+
+        try {
+            String address = JOptionPane.showInputDialog(null, "Address", "Enter the server address (without port)", JOptionPane.QUESTION_MESSAGE);
+            int port = Integer.parseInt(JOptionPane.showInputDialog(null, "Port", "Enter the server port", JOptionPane.QUESTION_MESSAGE));
+            if (address == null || address.isEmpty() || port == 0) {
+                System.out.println("No address provided");
+                return;
+            }
+            connector = new ConnectorClient(InetAddress.getByName(address), port);
+            connector.start();
+            while (!connector.isConnected() && !connector.isEnded()) {
+                Thread.sleep(100);
+                System.out.println("Waiting for connection...");
+            }
+
+            if (connector.isEnded()) {
+                System.out.println("Connection ended");
+                end();
+                return;
+            }
+        } catch (UnknownHostException | InterruptedException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        world.addEntity(player);
     }
 }

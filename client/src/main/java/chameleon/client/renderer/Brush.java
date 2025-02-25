@@ -24,4 +24,11 @@ public class Brush {
         g.setColor(new Color(color));
         g.drawString(text, x + insets.left, y + insets.top);
     }
+
+    public void drawCenteredString(int x, int y, String text, int color) {
+        FontMetrics fm = g.getFontMetrics();
+        int textWidth = fm.stringWidth(text);
+        int textHeight = fm.getHeight();
+        drawString(text, x - textWidth / 2, y - textHeight / 2, color);
+    }
 }
