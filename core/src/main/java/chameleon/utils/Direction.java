@@ -18,7 +18,7 @@ public enum Direction {
         return byDisplacement(newLocation.subtract(original).toVec2d(), defaultDirection);
     }
 
-    private static Direction byDisplacement(Vec2d displacement, Direction defaultDirection) {
+    public static Direction byDisplacement(Vec2d displacement, Direction defaultDirection) {
         return displacement.x() > 0 ? RIGHT :
                 displacement.x() < 0 ? LEFT :
                         displacement.y() > 0 ? DOWN :

@@ -47,6 +47,8 @@ public class ClientPlayer extends Player {
                 displacement = displacement.add(Direction.RIGHT.dx() * SPEED, Direction.RIGHT.dy() * SPEED);
         }
 
+        setDirection(Direction.byDisplacement(displacement, getDirection()));
+
         if (client.isOnline()) {
             if (moving) {
                 client.getConnector().send(new Packet04EntityMoveRequest(uuid(), displacement, moving));
