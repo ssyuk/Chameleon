@@ -4,7 +4,7 @@ import chameleon.client.ChameleonClient;
 import chameleon.client.utils.KeyHandler;
 import chameleon.entity.player.Player;
 import chameleon.entity.tile.Stairs;
-import chameleon.net.packet.Packet04EntityMove;
+import chameleon.net.packet.Packet04EntityMoveRequest;
 import chameleon.utils.Direction;
 import chameleon.utils.Location;
 import chameleon.utils.Vec2d;
@@ -49,10 +49,10 @@ public class ClientPlayer extends Player {
 
         if (client.isOnline()) {
             if (moving) {
-                client.getConnector().send(new Packet04EntityMove(uuid(), displacement, moving));
+                client.getConnector().send(new Packet04EntityMoveRequest(uuid(), displacement, moving));
             }
             if (!moving && lastMoving) {
-                client.getConnector().send(new Packet04EntityMove(uuid(), new Vec2d(0, 0), false)); // stop moving
+                client.getConnector().send(new Packet04EntityMoveRequest(uuid(), new Vec2d(0, 0), false)); // stop moving
             }
         }
 

@@ -1,9 +1,6 @@
 package chameleon.net.packet;
 
-import chameleon.Chameleon;
-
 import java.io.IOException;
-import java.net.InetAddress;
 
 public abstract class Packet {
     public static PacketTypes lookupPacket(int id) {
@@ -16,7 +13,7 @@ public abstract class Packet {
     }
 
     public enum PacketTypes {
-        INVALID(-1), LOGIN(0), DISCONNECT(1), SERVER_INFO(2), WORLD_DATA(3), ENTITY_MOVE(4), TILE_INFO_REQUEST(5), TILE_INFO(6);
+        INVALID(-1), LOGIN(0), DISCONNECT(1), SERVER_INFO(2), WORLD_DATA(3), ENTITY_MOVE_REQUEST(4), ENTITY_MOVED(5), TILE_INFO_REQUEST(6), TILE_INFO(7);
 
         private final int id;
 
@@ -27,10 +24,6 @@ public abstract class Packet {
         public int getId() {
             return id;
         }
-    }
-
-    public String readData(byte[] data) {
-        return new String(data).trim().substring(2);
     }
 
     public abstract byte[] getData() throws IOException;

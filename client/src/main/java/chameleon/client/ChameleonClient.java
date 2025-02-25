@@ -12,6 +12,7 @@ import chameleon.client.renderer.entity.TileEntityRenderer;
 import chameleon.client.utils.KeyHandler;
 import chameleon.client.utils.MouseHandler;
 import chameleon.client.window.Window;
+import chameleon.utils.Version;
 import chameleon.world.generator.NetworkWorldGenerator;
 import chameleon.entity.Entity;
 import chameleon.entity.tile.BrokenTree;
@@ -55,6 +56,11 @@ public class ChameleonClient extends Chameleon {
 
     public static ChameleonClient getInstance() {
         return INSTANCE;
+    }
+
+    @Override
+    public Version getVersion() {
+        return new Version(1, 0, 0);
     }
 
     @Override
@@ -135,9 +141,15 @@ public class ChameleonClient extends Chameleon {
             int port = Integer.parseInt(JOptionPane.showInputDialog(null, "Port", "Enter the server port", JOptionPane.QUESTION_MESSAGE));
             connector = new ConnectorClient(InetAddress.getByName(address), port);
             connector.start();
-            while (!connector.isConnected()) {
+            while (!connector.isConnected() && !connector.isEnded()) {
                 Thread.sleep(100);
                 System.out.println("Waiting for connection...");
+            }
+
+            if (connector.isEnded()) {
+                System.out.println("Connection ended");
+                end();
+                return;
             }
         } catch (UnknownHostException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -205,6 +217,14 @@ public class ChameleonClient extends Chameleon {
         window.dispose();
 
         System.out.println("Game ended");
+    }
+
+    public int fps() {
+        return frames;
+    }
+
+    public int ups() {
+        return updates;
     }
 
     public void update() {

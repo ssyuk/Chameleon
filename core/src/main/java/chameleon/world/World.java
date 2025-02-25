@@ -27,6 +27,7 @@ public class World {
 
     public void setTileAt(Location location, Tile tile) {
         tiles.put(location.toTileLocation(), tile);
+        if (tile == null) tiles.remove(location.toTileLocation());
     }
 
     public @Nullable TileEntity getTileEntityAt(Location location) {

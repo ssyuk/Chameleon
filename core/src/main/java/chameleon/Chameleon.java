@@ -1,6 +1,7 @@
 package chameleon;
 
 import chameleon.net.Connector;
+import chameleon.utils.Version;
 import chameleon.world.World;
 
 public abstract class Chameleon extends Thread {
@@ -13,6 +14,8 @@ public abstract class Chameleon extends Thread {
     public static Chameleon getInstance() {
         return INSTANCE;
     }
+
+    public abstract Version getVersion();
 
     public abstract boolean isServer();
 

@@ -55,7 +55,6 @@ public class ConnectorServer extends Connector {
 
                 byte[] data = new byte[length];
                 dataInputStream.readFully(data);
-                System.out.println("[" + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort() + "] " + "Packet received : " + data.length + " bytes");
                 if (parsePacket(data, clientSocket)) break;
             }
             System.out.println("[" + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort() + "] " + "Client disconnected.");
@@ -87,7 +86,7 @@ public class ConnectorServer extends Connector {
                 Packet03WorldData worldData = new Packet03WorldData(server.getWorld());
                 sendToAll(worldData);
 
-                send(new Packet02ServerInfo().getData(), new DataOutputStream(clientSocket.getOutputStream()));
+                send(new Packet02ServerInfo(server.getVersion()).getData(), new DataOutputStream(clientSocket.getOutputStream()));
                 yield false;
             }
             case DISCONNECT -> {
@@ -95,8 +94,8 @@ public class ConnectorServer extends Connector {
                 server.leavePlayer(packet.uuid());
                 yield true;
             }
-            case ENTITY_MOVE -> {
-                Packet04EntityMove packet = new Packet04EntityMove(unpacker);
+            case ENTITY_MOVE_REQUEST -> {
+                Packet04EntityMoveRequest packet = new Packet04EntityMoveRequest(unpacker);
                 Entity entity = server.getWorld().getEntityByUuid(packet.getTargetUuid());
                 if (entity == null) {
                     System.out.println("[" + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort() + "] " + "Entity not found... : " + packet.getTargetUuid());
@@ -104,18 +103,17 @@ public class ConnectorServer extends Connector {
                 }
                 if (entity.move(packet.getDisplacement(), false)) {
                     entity.setMoving(packet.isMoving());
-                    sendToAll(packet);
+                    sendToAll(new Packet05EntityMoved(entity));
                 }
                 yield false;
             }
             case TILE_INFO_REQUEST -> {
-                Packet05TileInfoRequest packet = new Packet05TileInfoRequest(unpacker);
+                Packet06TileInfoRequest packet = new Packet06TileInfoRequest(unpacker);
                 Location location = packet.tileLocation();
-                System.out.println("[" + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort() + "] " + "Tile info request : " + location);
 
                 World world = server.getWorld();
 
-                Packet06TileInfo response = new Packet06TileInfo(location, world.getTileAt(location), world.getHeightAt(location));
+                Packet07TileInfo response = new Packet07TileInfo(location, world.getTileAt(location), world.getHeightAt(location));
                 send(response.getData(), new DataOutputStream(clientSocket.getOutputStream()));
                 yield false;
             }

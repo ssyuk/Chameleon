@@ -1,25 +1,17 @@
 package chameleon.server;
 
 import chameleon.Chameleon;
-import chameleon.entity.tile.BrokenTree;
-import chameleon.entity.tile.Stairs;
 import chameleon.net.packet.Packet00Login;
 import chameleon.net.packet.Packet01Disconnect;
 import chameleon.server.entity.ServerPlayer;
 import chameleon.server.net.ConnectorServer;
-import chameleon.utils.Location;
+import chameleon.utils.Version;
 import chameleon.world.World;
 import chameleon.world.generator.NoiseWorldGenerator;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChameleonServer extends Chameleon {
     private ChameleonServer() {
@@ -39,6 +31,11 @@ public class ChameleonServer extends Chameleon {
 
     public static ChameleonServer getInstance() {
         return INSTANCE;
+    }
+
+    @Override
+    public Version getVersion() {
+        return new Version(1, 0, 0);
     }
 
     @Override
@@ -68,7 +65,7 @@ public class ChameleonServer extends Chameleon {
     public void run() {
         running = true;
 
-        world = new World(new NoiseWorldGenerator(new Random().nextInt()));
+        world = new World(new NoiseWorldGenerator(53));
 
         connector.start();
 
@@ -93,6 +90,10 @@ public class ChameleonServer extends Chameleon {
                 updates = 0;
             }
         }
+    }
+
+    public int ups() {
+        return updates;
     }
 
     public void update() {

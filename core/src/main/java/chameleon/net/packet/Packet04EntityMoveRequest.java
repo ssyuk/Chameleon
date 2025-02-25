@@ -8,12 +8,12 @@ import org.msgpack.core.MessageUnpacker;
 import java.io.IOException;
 import java.util.UUID;
 
-public class Packet04EntityMove extends Packet { // TODO
+public class Packet04EntityMoveRequest extends Packet {
     private final UUID targetUuid;
     private final Vec2d displacement;
     private final boolean moving;
 
-    public Packet04EntityMove(MessageUnpacker unpacker) {
+    public Packet04EntityMoveRequest(MessageUnpacker unpacker) {
         try {
             targetUuid = UUID.fromString(unpacker.unpackString());
             double x = unpacker.unpackDouble();
@@ -25,7 +25,7 @@ public class Packet04EntityMove extends Packet { // TODO
         }
     }
 
-    public Packet04EntityMove(UUID targetUuid, Vec2d displacement, boolean moving) {
+    public Packet04EntityMoveRequest(UUID targetUuid, Vec2d displacement, boolean moving) {
         this.targetUuid = targetUuid;
         this.displacement = displacement;
         this.moving = moving;

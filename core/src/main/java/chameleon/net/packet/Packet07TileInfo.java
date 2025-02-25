@@ -8,35 +8,50 @@ import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessageUnpacker;
 
 import java.io.IOException;
-import java.util.UUID;
 
-public class Packet05TileInfoRequest extends Packet {
+public class Packet07TileInfo extends Packet {
     private final Location tileLocation;
+    private final Tile tile;
+    private final int height;
 
-    public Packet05TileInfoRequest(MessageUnpacker unpacker) {
+    public Packet07TileInfo(MessageUnpacker unpacker) {
         try {
             double x = unpacker.unpackDouble();
             double y = unpacker.unpackDouble();
             this.tileLocation = new Location(Chameleon.getInstance().getWorld(), x, y).toTileLocation();
+            this.tile = Tile.fromId(unpacker.unpackString());
+            this.height = unpacker.unpackInt();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public Packet05TileInfoRequest(Location location) {
+    public Packet07TileInfo(Location location, Tile tile, int height) {
         this.tileLocation = location.toTileLocation();
+        this.tile = tile;
+        this.height = height;
     }
 
     public Location tileLocation() {
         return tileLocation;
     }
 
+    public Tile tile() {
+        return tile;
+    }
+
+    public int height() {
+        return height;
+    }
+
     @Override
     public byte[] getData() throws IOException {
         MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-        packer.packInt(5);
+        packer.packInt(7);
         packer.packDouble(tileLocation.x());
         packer.packDouble(tileLocation.y());
+        packer.packString(tile.id());
+        packer.packInt(height);
         return packer.toByteArray();
     }
 }

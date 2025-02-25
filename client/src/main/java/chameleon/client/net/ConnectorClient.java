@@ -5,18 +5,23 @@ import chameleon.entity.Entity;
 import chameleon.entity.player.Player;
 import chameleon.net.Connector;
 import chameleon.net.packet.*;
+import chameleon.utils.Direction;
 import chameleon.utils.Location;
+import chameleon.utils.Version;
 import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessageUnpacker;
 
 import java.io.*;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.Socket;
 
 public class ConnectorClient extends Connector {
+    private Socket socket;
     private final InetAddress address;
     private final int port;
     private DataOutputStream dataOutputStream;
     private boolean connected = false;
+    private boolean ended = false;
 
     public ConnectorClient(InetAddress address, int port) {
         this.address = address;
@@ -25,7 +30,6 @@ public class ConnectorClient extends Connector {
 
     @Override
     public void run() {
-        Socket socket;
         try {
             socket = new Socket(address, port);
         } catch (IOException e) {
@@ -45,67 +49,91 @@ public class ConnectorClient extends Connector {
 
                 byte[] data = new byte[length];
                 dataInputStream.readFully(data);
-                parsePacket(data);
+                if (parsePacket(data)) {
+                    break;
+                }
             }
+
+            socket.close();
+            ended = true;
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void parsePacket(byte[] data) throws IOException {
+    private boolean parsePacket(byte[] data) throws IOException {
         MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(data);
         Packet.PacketTypes type = Packet.lookupPacket(unpacker.unpackInt());
 
         ChameleonClient client = ChameleonClient.getInstance();
 
-        switch (type) {
-            case LOGIN: {
+        return switch (type) {
+            case LOGIN -> {
                 Packet00Login packet = new Packet00Login(unpacker);
                 if (!packet.uuid().equals(client.getClientPlayer().uuid())) {
                     System.out.println("[SERVER] " + packet.username() + " has joined the game.");
                     Player player = new Player(packet.username(), packet.uuid(), new Location(client.getWorld(), packet.location().x(), packet.location().y()));
                     client.getWorld().addEntity(player);
                 }
-                break;
+                yield false;
             }
-            case DISCONNECT: {
+            case DISCONNECT -> {
                 Packet01Disconnect packet = new Packet01Disconnect(unpacker);
                 if (!packet.uuid().equals(client.getClientPlayer().uuid())) {
                     System.out.println("[SERVER] " + ((Player) client.getWorld().getEntityByUuid(packet.uuid())).getName() + " has left the game.");
                     client.getWorld().removeEntity(packet.uuid());
                 }
-                break;
+                yield false;
             }
-            case SERVER_INFO: {
+            case SERVER_INFO -> {
                 Packet02ServerInfo packet = new Packet02ServerInfo(unpacker);
+                Version serverVersion = packet.serverVersion();
+
+                if (serverVersion.isNewerThan(client.getVersion())) {
+                    System.out.println("Server is running a newer version of the client.");
+                    System.out.println("Server version: " + serverVersion);
+                    System.out.println("Client version: " + client.getVersion());
+                    System.out.println("Please update your client to connect to the server.");
+                    yield true;
+                }
+
+                if (serverVersion.isOlderThan(client.getVersion())) {
+                    System.out.println("Server is running an older version of the client.");
+                    System.out.println("Server version: " + serverVersion);
+                    System.out.println("Client version: " + client.getVersion());
+                    System.out.println("Please use legacy version of the client to connect to the server.");
+                    yield true;
+                }
+
                 System.out.println("Connected!!!");
                 connected = true;
-                break;
+                yield false;
             }
-            case WORLD_DATA: {
+            case WORLD_DATA -> {
                 Packet03WorldData packet = new Packet03WorldData(unpacker);
                 client.setWorld(packet.world());
-                break;
+                yield false;
             }
-            case ENTITY_MOVE: {
-                Packet04EntityMove packet = new Packet04EntityMove(unpacker);
-                if (!packet.getTargetUuid().equals(client.getClientPlayer().uuid())) {
-                    Entity entity = client.getWorld().getEntityByUuid(packet.getTargetUuid());
-                    entity.setMoving(packet.isMoving());
-                }
-                break;
+            case ENTITY_MOVED -> {
+                Packet05EntityMoved packet = new Packet05EntityMoved(unpacker);
+                Entity entity = client.getWorld().getEntityByUuid(packet.targetUuid());
+                Location newLocation = new Location(client.getWorld(), packet.destinationX(), packet.destinationY());
+                entity.setMoving(packet.moving());
+                entity.setDirection(Direction.calculate(entity.getLocation(), newLocation, entity.getDirection()));
+                entity.teleport(newLocation);
+                yield false;
             }
-            case TILE_INFO: {
-                Packet06TileInfo packet = new Packet06TileInfo(unpacker);
+            case TILE_INFO -> {
+                Packet07TileInfo packet = new Packet07TileInfo(unpacker);
                 client.getWorld().setTileAt(packet.tileLocation(), packet.tile());
                 client.getWorld().setHeightAt(packet.tileLocation(), packet.height());
-                break;
+                yield false;
             }
-            case INVALID:
-            default:
+            default -> {
                 System.out.println("[SERVER] Invalid packet received: " + type);
-                break;
-        }
+                yield false;
+            }
+        };
     }
 
     @Override
@@ -119,14 +147,18 @@ public class ConnectorClient extends Connector {
 
     public void send(byte[] data) {
         try {
-            dataOutputStream.writeInt(data.length);
-            dataOutputStream.write(data);
-            dataOutputStream.flush();
-
-            System.out.println("Sent packet: " + Packet.lookupPacket(MessagePack.newDefaultUnpacker(data).unpackInt()));
+            if (!socket.isClosed()) {
+                dataOutputStream.writeInt(data.length);
+                dataOutputStream.write(data);
+                dataOutputStream.flush();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean isEnded() {
+        return ended;
     }
 
     public boolean isConnected() {
