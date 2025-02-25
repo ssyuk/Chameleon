@@ -12,7 +12,10 @@ import chameleon.client.renderer.entity.TileEntityRenderer;
 import chameleon.client.utils.KeyHandler;
 import chameleon.client.utils.MouseHandler;
 import chameleon.client.window.Window;
+import chameleon.world.generator.NetworkWorldGenerator;
 import chameleon.entity.Entity;
+import chameleon.entity.tile.BrokenTree;
+import chameleon.entity.tile.Stairs;
 import chameleon.net.packet.Packet01Disconnect;
 import chameleon.utils.Location;
 import chameleon.world.World;
@@ -45,8 +48,8 @@ public class ChameleonClient extends Chameleon {
     private final AssetManager assetManager = new AssetManager();
     private final AssetLoader assetLoader = new AssetLoader();
 
-    private World world = new World();
-    private final ClientPlayer player = new ClientPlayer("player" + (new Random().nextInt(899) + 100), new Location(world, 0.5, 0.5));
+    private World world;
+    private ClientPlayer player;
 
     private @Nullable ConnectorClient connector;
 
@@ -122,20 +125,42 @@ public class ChameleonClient extends Chameleon {
     public void run() {
         running = true;
 
-
+        assetManager.load();
 
         try {
             String address = JOptionPane.showInputDialog(null, "Address", "Enter the server address (without port)", JOptionPane.QUESTION_MESSAGE);
             int port = Integer.parseInt(JOptionPane.showInputDialog(null, "Port", "Enter the server port", JOptionPane.QUESTION_MESSAGE));
-            connector = new ConnectorClient(InetAddress.getLocalHost(), 8793);
+            connector = new ConnectorClient(InetAddress.getByName(address), port);
             connector.start();
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
 
-        assetManager.load();
+        world = new World(new NetworkWorldGenerator());
+        player = new ClientPlayer("player" + (new Random().nextInt(899) + 100), new Location(world, 0.5, 0.5));
 
         world.addEntity(player);
+
+        world.addEntity(new BrokenTree(new Location(world, 1.5, .5)));
+
+//        // load height.txt
+//        Path path = Paths.get("height.txt");
+//        try {
+//            AtomicInteger y = new AtomicInteger(-10);
+//            Files.lines(path).forEach(s -> {
+//                int x = -10;
+//                for (char h : s.toCharArray()) {
+//                    world.setHeightAt(new Location(world, x, y.get()), Integer.parseInt(h + ""));
+//                    x++;
+//                }
+//                y.getAndIncrement();
+//            });
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+
+        world.addEntity(new Stairs(new Location(world, 4, 0)));
+        world.addEntity(new Stairs(new Location(world, 1, 2)));
 
         EntityRenderer.register("player", entity -> new PlayerRenderer());
         EntityRenderer.register("bush", entity -> new TileEntityRenderer());

@@ -9,6 +9,7 @@ import chameleon.server.entity.ServerPlayer;
 import chameleon.server.net.ConnectorServer;
 import chameleon.utils.Location;
 import chameleon.world.World;
+import chameleon.world.generator.NoiseWorldGenerator;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,6 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -30,7 +32,7 @@ public class ChameleonServer extends Chameleon {
 
     private int updates = 0;
 
-    private final World world = new World();
+    private World world;
     private final List<ServerPlayer> players = new ArrayList<>();
 
     private final ConnectorServer connector = new ConnectorServer(8793);
@@ -66,28 +68,9 @@ public class ChameleonServer extends Chameleon {
     public void run() {
         running = true;
 
+        world = new World(new NoiseWorldGenerator(new Random().nextInt()));
+
         connector.start();
-
-        world.addEntity(new BrokenTree(new Location(world, 1.5, .5)));
-
-        // load height.txt
-        Path path = Paths.get("height.txt");
-        try {
-            AtomicInteger y = new AtomicInteger(-10);
-            Files.lines(path).forEach(s -> {
-                int x = -10;
-                for (char h : s.toCharArray()) {
-                    world.setHeightAt(new Location(world, x, y.get()), Integer.parseInt(h + ""));
-                    x++;
-                }
-                y.getAndIncrement();
-            });
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        world.addEntity(new Stairs(new Location(world, 4, 0)));
-        world.addEntity(new Stairs(new Location(world, 1, 2)));
 
         long lastTime = System.nanoTime();
         double unprocessed = 0;

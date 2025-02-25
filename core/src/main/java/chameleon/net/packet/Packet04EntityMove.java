@@ -1,7 +1,5 @@
 package chameleon.net.packet;
 
-import chameleon.entity.Entity;
-import chameleon.utils.Location;
 import chameleon.utils.Vec2d;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
@@ -10,12 +8,12 @@ import org.msgpack.core.MessageUnpacker;
 import java.io.IOException;
 import java.util.UUID;
 
-public class Packet03EntityMove extends Packet { // TODO
+public class Packet04EntityMove extends Packet { // TODO
     private final UUID targetUuid;
     private final Vec2d displacement;
     private final boolean moving;
 
-    public Packet03EntityMove(MessageUnpacker unpacker) {
+    public Packet04EntityMove(MessageUnpacker unpacker) {
         try {
             targetUuid = UUID.fromString(unpacker.unpackString());
             double x = unpacker.unpackDouble();
@@ -27,7 +25,7 @@ public class Packet03EntityMove extends Packet { // TODO
         }
     }
 
-    public Packet03EntityMove(UUID targetUuid, Vec2d displacement, boolean moving) {
+    public Packet04EntityMove(UUID targetUuid, Vec2d displacement, boolean moving) {
         this.targetUuid = targetUuid;
         this.displacement = displacement;
         this.moving = moving;
@@ -48,7 +46,7 @@ public class Packet03EntityMove extends Packet { // TODO
     @Override
     public byte[] getData() throws IOException {
         MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-        packer.packInt(3);
+        packer.packInt(4);
         packer.packString(targetUuid.toString());
         packer.packDouble(displacement.x());
         packer.packDouble(displacement.y());

@@ -3,6 +3,7 @@ package chameleon.net.packet;
 import chameleon.entity.Entity;
 import chameleon.utils.Location;
 import chameleon.world.World;
+import chameleon.world.generator.NetworkWorldGenerator;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessageUnpacker;
@@ -12,11 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class Packet02WorldData extends Packet { // TODO
+public class Packet03WorldData extends Packet { // TODO
     private final World world;
 
-    public Packet02WorldData(MessageUnpacker unpacker) {
-        this.world = new World();
+    public Packet03WorldData(MessageUnpacker unpacker) {
+        this.world = new World(new NetworkWorldGenerator());
 
         try {
             // unpack height map
@@ -46,7 +47,7 @@ public class Packet02WorldData extends Packet { // TODO
 
     }
 
-    public Packet02WorldData(World world) {
+    public Packet03WorldData(World world) {
         this.world = world;
     }
 
@@ -57,7 +58,7 @@ public class Packet02WorldData extends Packet { // TODO
     @Override
     public byte[] getData() throws IOException {
         MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-        packer.packInt(2);
+        packer.packInt(3);
         // TODO: tile
 
         // pack height map

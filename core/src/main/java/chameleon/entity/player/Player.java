@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 public class Player extends Entity {
-    protected static final double SPEED = 0.03;
+    protected static final double SPEED = 0.1;
     private final String name;
 
     public Player(String name, UUID uuid, Location location) {

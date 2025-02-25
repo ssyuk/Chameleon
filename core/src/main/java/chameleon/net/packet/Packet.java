@@ -16,7 +16,7 @@ public abstract class Packet {
     }
 
     public enum PacketTypes {
-        INVALID(-1), LOGIN(0), DISCONNECT(1), WORLD_DATA(2), ENTITY_MOVE(3);
+        INVALID(-1), LOGIN(0), DISCONNECT(1), SERVER_INFO(2), WORLD_DATA(3), ENTITY_MOVE(4), TILE_INFO_REQUEST(5), TILE_INFO(6);
 
         private final int id;
 

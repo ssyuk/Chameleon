@@ -13,6 +13,7 @@ import chameleon.entity.CollisionOption;
 import chameleon.entity.Entity;
 import chameleon.utils.Location;
 import chameleon.world.World;
+import chameleon.world.tile.Tile;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -68,7 +69,10 @@ public class WorldRenderer {
                 int drawX = (int) ((tx - viewX + halfWindowWidthTiles) * TILE_SIZE);
                 int drawY = (int) ((ty - viewY + halfWindowHeightTiles) * TILE_SIZE);
 
-                TileSprite sprite = manager.getTileSprite(world.getTileAt(location).id());
+                Tile tile = world.getTileAt(location);
+                if (tile.id().equalsIgnoreCase("void")) continue;
+
+                TileSprite sprite = manager.getTileSprite(tile.id());
                 BufferedImage selectedImage = switch (sprite.getSpriteSheet("sprite")) {
                     case SingleSpriteSheet single -> single.image();
                     case DirectionalSpriteSheet directional -> directional.image(world, location);

@@ -5,6 +5,8 @@ import chameleon.net.Connector;
 import chameleon.net.packet.*;
 import chameleon.server.ChameleonServer;
 import chameleon.server.entity.ServerPlayer;
+import chameleon.utils.Location;
+import chameleon.world.World;
 import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessageUnpacker;
 
@@ -53,11 +55,20 @@ public class ConnectorServer extends Connector {
 
                 byte[] data = new byte[length];
                 dataInputStream.readFully(data);
+                System.out.println("[" + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort() + "] " + "Packet received : " + data.length + " bytes");
                 if (parsePacket(data, clientSocket)) break;
             }
+            System.out.println("[" + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort() + "] " + "Client disconnected.");
             clientSocket.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } finally {
+            try {
+                System.out.println("[" + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort() + "] " + "Closing connection...");
+                clientSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -73,8 +84,10 @@ public class ConnectorServer extends Connector {
                 ServerPlayer player = new ServerPlayer(packet.username(), packet.uuid(), packet.location(), clientSocket);
                 server.joinPlayer(player);
 
-                Packet02WorldData worldData = new Packet02WorldData(server.getWorld());
+                Packet03WorldData worldData = new Packet03WorldData(server.getWorld());
                 sendToAll(worldData);
+
+                send(new Packet02ServerInfo().getData(), new DataOutputStream(clientSocket.getOutputStream()));
                 yield false;
             }
             case DISCONNECT -> {
@@ -83,7 +96,7 @@ public class ConnectorServer extends Connector {
                 yield true;
             }
             case ENTITY_MOVE -> {
-                Packet03EntityMove packet = new Packet03EntityMove(unpacker);
+                Packet04EntityMove packet = new Packet04EntityMove(unpacker);
                 Entity entity = server.getWorld().getEntityByUuid(packet.getTargetUuid());
                 if (entity == null) {
                     System.out.println("[" + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort() + "] " + "Entity not found... : " + packet.getTargetUuid());
@@ -93,6 +106,17 @@ public class ConnectorServer extends Connector {
                     entity.setMoving(packet.isMoving());
                     sendToAll(packet);
                 }
+                yield false;
+            }
+            case TILE_INFO_REQUEST -> {
+                Packet05TileInfoRequest packet = new Packet05TileInfoRequest(unpacker);
+                Location location = packet.tileLocation();
+                System.out.println("[" + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getPort() + "] " + "Tile info request : " + location);
+
+                World world = server.getWorld();
+
+                Packet06TileInfo response = new Packet06TileInfo(location, world.getTileAt(location), world.getHeightAt(location));
+                send(response.getData(), new DataOutputStream(clientSocket.getOutputStream()));
                 yield false;
             }
             default -> {
@@ -120,5 +144,10 @@ public class ConnectorServer extends Connector {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void send(Packet packet) {
+        throw new UnsupportedOperationException("Cannot send packets from server.");
     }
 }
