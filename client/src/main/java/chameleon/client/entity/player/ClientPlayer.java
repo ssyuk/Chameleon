@@ -26,25 +26,31 @@ public class ClientPlayer extends Player {
         lastMoving = moving;
         moving = false;
         Vec2d displacement = new Vec2d(0, 0);
+        
+        double speed = SPEED;
+        if (keyHandler.isKeyDown(KeyEvent.VK_SHIFT)) {
+            speed = 0.1;
+        }
+        
         if (keyHandler.isKeyDown(KeyEvent.VK_W)) {
             moving = true;
-            if (move(Direction.UP, SPEED))
-                displacement = displacement.add(Direction.UP.dx() * SPEED, Direction.UP.dy() * SPEED);
+            if (move(Direction.UP, speed))
+                displacement = displacement.add(Direction.UP.dx() * speed, Direction.UP.dy() * speed);
         }
         if (keyHandler.isKeyDown(KeyEvent.VK_S)) {
             moving = true;
-            if (move(Direction.DOWN, SPEED))
-                displacement = displacement.add(Direction.DOWN.dx() * SPEED, Direction.DOWN.dy() * SPEED);
+            if (move(Direction.DOWN, speed))
+                displacement = displacement.add(Direction.DOWN.dx() * speed, Direction.DOWN.dy() * speed);
         }
         if (keyHandler.isKeyDown(KeyEvent.VK_A)) {
             moving = true;
-            if (move(Direction.LEFT, SPEED))
-                displacement = displacement.add(Direction.LEFT.dx() * SPEED, Direction.LEFT.dy() * SPEED);
+            if (move(Direction.LEFT, speed))
+                displacement = displacement.add(Direction.LEFT.dx() * speed, Direction.LEFT.dy() * speed);
         }
         if (keyHandler.isKeyDown(KeyEvent.VK_D)) {
             moving = true;
-            if (move(Direction.RIGHT, SPEED))
-                displacement = displacement.add(Direction.RIGHT.dx() * SPEED, Direction.RIGHT.dy() * SPEED);
+            if (move(Direction.RIGHT, speed))
+                displacement = displacement.add(Direction.RIGHT.dx() * speed, Direction.RIGHT.dy() * speed);
         }
 
         setDirection(Direction.byDisplacement(displacement, getDirection()));
