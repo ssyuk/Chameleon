@@ -36,8 +36,8 @@ public class TileEntityRenderer extends EntityRenderer {
         Location location = entity.getLocation();
         double x = location.x();
         double y = location.y();
-        int drawX = (int) ((x - viewX + halfWindowWidthTiles - .5) * TILE_SIZE);
-        int drawY = (int) ((y - viewY + halfWindowHeightTiles - .5) * TILE_SIZE);
+        int drawX = (int) Math.round((x - viewX + halfWindowWidthTiles - .5) * TILE_SIZE);
+        int drawY = (int) Math.round((y - viewY + halfWindowHeightTiles - .5) * TILE_SIZE);
         brush.drawImage(drawX, drawY, TILE_SIZE, TILE_SIZE, image);
     }
 }

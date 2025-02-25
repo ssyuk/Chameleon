@@ -53,8 +53,8 @@ public class PlayerRenderer extends EntityRenderer {
         Location location = player.getLocation();
         double x = location.x();
         double y = location.y();
-        int drawX = (int) ((x - viewX + halfWindowWidthTiles - .5) * TILE_SIZE - (double) TILE_SIZE / 4);
-        int drawY = (int) ((y - viewY + halfWindowHeightTiles - .5) * TILE_SIZE - (double) TILE_SIZE / 2);
+        int drawX = (int) Math.round((x - viewX + halfWindowWidthTiles - .5) * TILE_SIZE - (double) TILE_SIZE / 4);
+        int drawY = (int) Math.round((y - viewY + halfWindowHeightTiles - .5) * TILE_SIZE - (double) TILE_SIZE / 2);
         brush.drawImage(drawX, drawY, (int) (TILE_SIZE * 1.4), (int) (TILE_SIZE * 1.4), selectedImage);
     }
 }
