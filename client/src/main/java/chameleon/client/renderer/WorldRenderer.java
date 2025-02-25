@@ -66,8 +66,8 @@ public class WorldRenderer {
         for (int tx = startX; tx < endX; tx++) {
             for (int ty = startY; ty < endY; ty++) {
                 Location location = new Location(world, tx, ty);
-                int drawX = (int) ((tx - viewX + halfWindowWidthTiles) * TILE_SIZE);
-                int drawY = (int) ((ty - viewY + halfWindowHeightTiles) * TILE_SIZE);
+                int drawX = (int) Math.round((tx - viewX + halfWindowWidthTiles) * TILE_SIZE);
+                int drawY = (int) Math.round((ty - viewY + halfWindowHeightTiles) * TILE_SIZE);
 
                 Tile tile = world.getTileAt(location);
                 if (tile.id().equalsIgnoreCase("void")) continue;
