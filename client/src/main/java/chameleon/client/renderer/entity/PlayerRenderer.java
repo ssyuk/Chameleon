@@ -6,7 +6,6 @@ import chameleon.client.assets.spritesheet.AnimatedSpriteSheet;
 import chameleon.client.assets.spritesheet.SingleSpriteSheet;
 import chameleon.client.assets.spritesheet.SpriteSheet;
 import chameleon.client.renderer.Brush;
-import chameleon.client.window.Window;
 import chameleon.entity.Entity;
 import chameleon.entity.player.Player;
 import chameleon.utils.Location;
@@ -21,7 +20,7 @@ public class PlayerRenderer extends EntityRenderer {
     private int currentFrame = 0;
 
     @Override
-    public void render(Brush brush, World world, double viewX, double viewY, Window window, Entity entity) {
+    public void render(Brush brush, World world, double viewX, double viewY, int width, int height, Entity entity) {
         Player player = (Player) entity;
 
         ChameleonClient client = ChameleonClient.getInstance();
@@ -45,8 +44,8 @@ public class PlayerRenderer extends EntityRenderer {
             default -> null;
         };
 
-        int halfWindowWidth = window.getWidth() / 2;
-        int halfWindowHeight = window.getHeight() / 2;
+        int halfWindowWidth = width / 2;
+        int halfWindowHeight = height / 2;
         double halfWindowWidthTiles = halfWindowWidth / (double) TILE_SIZE;
         double halfWindowHeightTiles = halfWindowHeight / (double) TILE_SIZE;
 

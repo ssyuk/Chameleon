@@ -7,11 +7,11 @@ import chameleon.utils.Location;
 public class GameRenderer {
     private final WorldRenderer worldRenderer = new WorldRenderer();
 
-    public void render(Brush brush) {
+    public void render(Brush brush, int width, int height) {
         ChameleonClient client = ChameleonClient.getInstance();
         Player player = client.getClientPlayer();
         Location view = player.getLocation();
-        worldRenderer.render(brush, view.x(), view.y());
+        worldRenderer.render(brush, view.x(), view.y(), width, height);
         brush.drawString("x: " + String.format("%.3f", player.getLocation().x()), 10, 20, 0x000000);
         brush.drawString("y: " + String.format("%.3f", player.getLocation().y()), 10, 35, 0x000000);
         brush.drawString("target tile: " + client.getMouseHandler().getTargetTile(), 10, 80, 0x000000);

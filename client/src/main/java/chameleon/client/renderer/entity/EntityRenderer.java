@@ -1,7 +1,6 @@
 package chameleon.client.renderer.entity;
 
 import chameleon.client.renderer.Brush;
-import chameleon.client.window.Window;
 import chameleon.entity.Entity;
 import chameleon.world.World;
 
@@ -17,5 +16,5 @@ public abstract class EntityRenderer {
         RENDERERS.put(id, renderer);
     }
 
-    public abstract void render(Brush brush, World world, double viewX, double viewY, Window window, Entity entity);
+    public abstract void render(Brush brush, World world, double viewX, double viewY, int width, int height, Entity entity);
 }

@@ -38,7 +38,7 @@ public class ChameleonClient extends Chameleon {
         Chameleon.INSTANCE = this;
     }
 
-    public static final int TILE_SIZE = 64;
+    public static final int TILE_SIZE = 1;
 
     private static final ChameleonClient INSTANCE = new ChameleonClient();
     private boolean running = false;
@@ -46,12 +46,12 @@ public class ChameleonClient extends Chameleon {
     private int frames = 0;
     private int updates = 0;
 
-    private final KeyHandler keyHandler = new KeyHandler();
-    private final MouseHandler mouseHandler = new MouseHandler();
-    private final Window window = new Window(this);
-    private final GameRenderer renderer = new GameRenderer();
-    private final AssetManager assetManager = new AssetManager();
-    private final AssetLoader assetLoader = new AssetLoader();
+    private KeyHandler keyHandler;
+    private MouseHandler mouseHandler;
+    private Window window;
+    private GameRenderer renderer;
+    private AssetManager assetManager;
+    private AssetLoader assetLoader;
 
     private Screen screen;
     private World world;
@@ -117,8 +117,8 @@ public class ChameleonClient extends Chameleon {
         this.world = world;
 
         List<Entity> entities = world.getEntities();
-        entities.removeIf(entity -> entity.uuid().equals(getClientPlayer().uuid()));
-        entities.add(getClientPlayer());
+        boolean clientPlayerRemoved = entities.removeIf(entity -> entity.uuid().equals(getClientPlayer().uuid()));
+        if (clientPlayerRemoved) entities.add(getClientPlayer());
 
         for (Entity entity : entities) {
             entity.teleport(new Location(world, entity.getLocation().x(), entity.getLocation().y()));
@@ -144,7 +144,16 @@ public class ChameleonClient extends Chameleon {
     public void run() {
         running = true;
 
+        keyHandler = new KeyHandler();
+        mouseHandler = new MouseHandler();
+        window = new Window(this);
+        renderer = new GameRenderer();
+        assetManager = new AssetManager();
+        assetLoader = new AssetLoader();
+
         assetManager.load();
+
+        super.run();
 
         EntityRenderer.register("player", entity -> new PlayerRenderer());
         EntityRenderer.register("bush", entity -> new TileEntityRenderer());
@@ -209,7 +218,7 @@ public class ChameleonClient extends Chameleon {
         brush.drawRect(0, 0, window.getWidth(), window.getHeight(), 0xFFFFFF);
 
         if (isInGame()) {
-            renderer.render(brush);
+            renderer.render(brush, window.getWidth(), window.getHeight());
         }
 
         if (screen != null) screen.render(brush);

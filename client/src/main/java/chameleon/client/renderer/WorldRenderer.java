@@ -2,13 +2,10 @@ package chameleon.client.renderer;
 
 import chameleon.client.ChameleonClient;
 import chameleon.client.assets.AssetManager;
-import chameleon.client.assets.spritesheet.DirectionalSpriteSheet;
 import chameleon.client.assets.spritesheet.SingleSpriteSheet;
 import chameleon.client.assets.spritesheet.SpriteSheet;
 import chameleon.client.assets.tile.CliffSprite;
-import chameleon.client.assets.tile.TileSprite;
 import chameleon.client.renderer.entity.EntityRenderer;
-import chameleon.client.window.Window;
 import chameleon.entity.CollisionOption;
 import chameleon.entity.Entity;
 import chameleon.utils.Location;
@@ -32,12 +29,11 @@ public class WorldRenderer {
      * @param viewX The x-coordinate of the view.
      * @param viewY The y-coordinate of the view.
      */
-    public void render(Brush brush, double viewX, double viewY) {
+    public void render(Brush brush, double viewX, double viewY, int width, int height) {
         ChameleonClient client = ChameleonClient.getInstance();
         World world = client.getWorld();
-        Window window = client.getWindow();
-        renderTile(brush, world, viewX, viewY, window);
-        renderEntities(brush, world, viewX, viewY, window);
+        renderTile(brush, world, viewX, viewY, width, height);
+        renderEntities(brush, world, viewX, viewY, width, height);
     }
 
     /**
@@ -47,14 +43,15 @@ public class WorldRenderer {
      * @param world  The world to render.
      * @param viewX  The x-coordinate of the view.
      * @param viewY  The y-coordinate of the view.
-     * @param window The window to render in.
+     * @param width  The width of the window.
+     * @param height The height of the window.
      */
-    private void renderTile(Brush brush, World world, double viewX, double viewY, Window window) {
+    private void renderTile(Brush brush, World world, double viewX, double viewY, int width, int height) {
         ChameleonClient client = ChameleonClient.getInstance();
         AssetManager manager = client.getAssetManager();
 
-        int halfWindowWidth = window.getWidth() / 2;
-        int halfWindowHeight = window.getHeight() / 2;
+        int halfWindowWidth = width / 2;
+        int halfWindowHeight = height / 2;
         double halfWindowWidthTiles = (double) halfWindowWidth / TILE_SIZE;
         double halfWindowHeightTiles = (double) halfWindowHeight / TILE_SIZE;
 
@@ -72,20 +69,21 @@ public class WorldRenderer {
                 Tile tile = world.getTileAt(location);
                 if (tile.id().equalsIgnoreCase("void")) continue;
 
-                TileSprite sprite = manager.getTileSprite(tile.id());
-                BufferedImage selectedImage = switch (sprite.getSpriteSheet("sprite")) {
-                    case SingleSpriteSheet single -> single.image();
-                    case DirectionalSpriteSheet directional -> directional.image(world, location);
-                    default -> null;
-                };
-                brush.drawImage(drawX, drawY, TILE_SIZE, TILE_SIZE, selectedImage);
+//                TileSprite sprite = manager.getTileSprite(tile.id());
+//                BufferedImage selectedImage = switch (sprite.getSpriteSheet("sprite")) {
+//                    case SingleSpriteSheet single -> single.image();
+//                    case DirectionalSpriteSheet directional -> directional.image(world, location);
+//                    default -> null;
+//                };
+//                brush.drawImage(drawX, drawY, TILE_SIZE, TILE_SIZE, selectedImage);
+                brush.drawRect(drawX, drawY, TILE_SIZE, TILE_SIZE, tile.color().getRGB());
 
                 // 절벽 렌더링 추가
-                int currentHeight = world.getHeightAt(location);
-                Entity tileEntity = world.getTileEntityAt(location);
-                if (tileEntity == null || !tileEntity.getCollisionOption().equals(CollisionOption.SLOPE)) {
-                    checkNeighborsAndRenderCliff(brush, world, tx, ty, currentHeight, drawX, drawY);
-                }
+//                int currentHeight = world.getHeightAt(location);
+//                Entity tileEntity = world.getTileEntityAt(location);
+//                if (tileEntity == null || !tileEntity.getCollisionOption().equals(CollisionOption.SLOPE)) {
+//                    checkNeighborsAndRenderCliff(brush, world, tx, ty, currentHeight, drawX, drawY);
+//                }
             }
         }
     }
@@ -162,11 +160,12 @@ public class WorldRenderer {
      * @param world  The world to render.
      * @param viewX  The x-coordinate of the view.
      * @param viewY  The y-coordinate of the view.
-     * @param window The window to render in.
+     * @param width  The width of the window.
+     * @param height The height of the window.
      */
-    private void renderEntities(Brush brush, World world, double viewX, double viewY, Window window) {
-        int halfWindowWidth = window.getWidth() / 2;
-        int halfWindowHeight = window.getHeight() / 2;
+    private void renderEntities(Brush brush, World world, double viewX, double viewY, int width, int height) {
+        int halfWindowWidth = width / 2;
+        int halfWindowHeight = height / 2;
         double halfWindowWidthTiles = halfWindowWidth / (double) TILE_SIZE;
         double halfWindowHeightTiles = halfWindowHeight / (double) TILE_SIZE;
 
@@ -174,7 +173,7 @@ public class WorldRenderer {
                 .filter(entity -> {
                     int drawX = (int) ((entity.getLocation().x() - viewX + halfWindowWidthTiles - .5) * TILE_SIZE);
                     int drawY = (int) ((entity.getLocation().y() - viewY + halfWindowHeightTiles - .5) * TILE_SIZE);
-                    return drawX >= -TILE_SIZE && drawX <= window.getWidth() && drawY >= -TILE_SIZE && drawY <= window.getHeight();
+                    return drawX >= -TILE_SIZE && drawX <= width && drawY >= -TILE_SIZE && drawY <= height;
                 })
                 .sorted(Comparator.<Entity>comparingInt(entity -> entity.getCollisionOption() == CollisionOption.SLOPE ? 0 : 1)
                         .thenComparingDouble(entity -> entity.getLocation().y()))
@@ -182,14 +181,14 @@ public class WorldRenderer {
 
         for (Entity entity : visibleEntities) {
             // if entity is not within view, continue (entity location, view x/y is in tile coordinates)
-            if (entity.getLocation().x() < viewX - (double) window.getWidth() / TILE_SIZE || entity.getLocation().x() > viewX + (double) window.getWidth() / TILE_SIZE ||
-                    entity.getLocation().y() < viewY - (double) window.getHeight() / TILE_SIZE || entity.getLocation().y() > viewY + (double) window.getHeight() / TILE_SIZE) {
+            if (entity.getLocation().x() < viewX - (double) width / TILE_SIZE || entity.getLocation().x() > viewX + (double) width / TILE_SIZE ||
+                    entity.getLocation().y() < viewY - (double) height / TILE_SIZE || entity.getLocation().y() > viewY + (double) height / TILE_SIZE) {
                 continue;
             }
 
             EntityRenderer.RENDERER_CACHE.putIfAbsent(entity.uuid(), EntityRenderer.RENDERERS.get(entity.id()).make(entity));
             EntityRenderer renderer = EntityRenderer.RENDERER_CACHE.get(entity.uuid());
-            renderer.render(brush, world, viewX, viewY, window, entity);
+            renderer.render(brush, world, viewX, viewY, width, height, entity);
         }
 
         brush.drawString("entities: " + world.getEntities().size(), 10, 50, 0x000000);

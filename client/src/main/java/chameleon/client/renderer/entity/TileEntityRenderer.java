@@ -6,7 +6,6 @@ import chameleon.client.assets.spritesheet.DirectionalSpriteSheet;
 import chameleon.client.assets.spritesheet.SingleSpriteSheet;
 import chameleon.client.assets.spritesheet.SpriteSheet;
 import chameleon.client.renderer.Brush;
-import chameleon.client.window.Window;
 import chameleon.entity.Entity;
 import chameleon.utils.Location;
 import chameleon.world.World;
@@ -17,7 +16,7 @@ import static chameleon.client.ChameleonClient.TILE_SIZE;
 
 public class TileEntityRenderer extends EntityRenderer {
     @Override
-    public void render(Brush brush, World world, double viewX, double viewY, Window window, Entity entity) {
+    public void render(Brush brush, World world, double viewX, double viewY, int width, int height, Entity entity) {
         ChameleonClient client = ChameleonClient.getInstance();
         EntitySprite sprite = client.getAssetManager().getEntitySprite(entity.id());
         SpriteSheet spriteSheet = sprite.getSpriteSheet("sprite");
@@ -28,8 +27,8 @@ public class TileEntityRenderer extends EntityRenderer {
             default -> null;
         };
 
-        int halfWindowWidth = window.getWidth() / 2;
-        int halfWindowHeight = window.getHeight() / 2;
+        int halfWindowWidth = width / 2;
+        int halfWindowHeight = height / 2;
         double halfWindowWidthTiles = halfWindowWidth / (double) TILE_SIZE;
         double halfWindowHeightTiles = halfWindowHeight / (double) TILE_SIZE;
 

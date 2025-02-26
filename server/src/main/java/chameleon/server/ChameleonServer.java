@@ -65,6 +65,8 @@ public class ChameleonServer extends Chameleon {
     public void run() {
         running = true;
 
+        super.run();
+
         world = new World(new NoiseWorldGenerator(53));
 
         connector.start();
